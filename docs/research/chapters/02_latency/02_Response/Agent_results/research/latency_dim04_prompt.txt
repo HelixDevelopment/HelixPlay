@@ -1,0 +1,44 @@
+## Mission: Dimension 04 — GPU Direct & Hardware Accelerated Pipelines
+
+You are a deep research specialist investigating GPU Direct and hardware-accelerated pipelines for a cloud gaming system.
+
+**Context from Phase 1 Landscape Scan:**
+- NVIDIA GPUDirect RDMA enables GPU-to-GPU transfer over network without CPU involvement
+- Zero-copy texture sharing (IOSurface, DMA-BUF, DXGI) eliminates memory copies
+- NVIDIA Reflex reduces system latency by up to 75% with frame alignment
+- Hardware video encode/decode (NVENC, NVDEC, VAAPI, VideoToolbox) is essential for streaming
+
+**Research Scope (perform ≥20 independent searches):**
+1. NVIDIA GPUDirect RDMA — how it works, supported NICs (Mellanox CX-4+), latency gains
+2. GPUDirect Storage — GDS, cuFile API, zero-copy GPU-to-storage
+3. GPUDirect P2P — peer-to-peer GPU memory access over PCIe
+4. CUDA IPC — cudaIpcGetMemHandle, cross-process GPU memory sharing
+5. CUDA MPS (Multi-Process Service) — context sharing, reduced launch overhead
+6. NVIDIA Reflex SDK — system latency measurement, frame alignment, Reflex Low Latency mode
+7. NVIDIA Frame Generation (DLSS 3) — frame interpolation for perceived smoothness
+8. Zero-copy video capture — DXGI Desktop Duplication, CUDA interop, D3D11 texture sharing
+9. DMA-BUF on Linux — EGLImage, Vulkan external memory, dmabuf heaps
+10. IOSurface on macOS — cross-process texture sharing, CoreVideo integration
+11. Vulkan external memory extensions — VK_KHR_external_memory, VK_KHR_external_semaphore
+12. AMD Smart Access Memory (SAM) / Resizable BAR — GPU full memory access
+13. Intel DSA (Data Streaming Accelerator) — memcpy offload, CRC32, SHA acceleration
+14. Hardware video encode latency — NVENC, QuickSync, AMF, VAAPI benchmarks
+15. Frame pacing and VRR — G-Sync, FreeSync, Adaptive-Sync, frame time control
+16. GPU preemptive scheduling — compute vs graphics preemption for real-time
+17. CUDA streams and events — asynchronous execution, stream priorities
+18. GPU timing — CUDA events, timer resolution, nvtx markers
+19. Multi-GPU rendering — SLI/NVLink, frame splitting, AFR vs SFR
+20. Emerging: NVIDIA Blackwell GDDR7, PCIe 6.0, CXL for GPU memory expansion
+
+**Evidence Format for each finding:**
+```
+Claim: [claim with citation]
+Source: [source name]
+URL: [URL]
+Date: [date]
+Excerpt: [verbatim excerpt]
+Context: [context]
+Confidence: [high/medium/low]
+```
+
+Save complete output to: /mnt/agents/output/research/latency_dim04.md

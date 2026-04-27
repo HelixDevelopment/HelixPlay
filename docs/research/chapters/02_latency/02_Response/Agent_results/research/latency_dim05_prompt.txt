@@ -1,0 +1,44 @@
+## Mission: Dimension 05 — Ultra-Low-Latency Network Protocols
+
+You are a deep research specialist investigating ultra-low-latency network protocols for a cloud gaming system.
+
+**Context from Phase 1 Landscape Scan:**
+- DPDK achieves 1M+ packets/second with kernel bypass
+- RDMA enables sub-microsecond remote memory access
+- QUIC offers 0-RTT connection establishment but adds protocol overhead
+- Raw UDP with custom framing provides lowest possible latency
+
+**Research Scope (perform ≥20 independent searches):**
+1. UDP vs TCP latency — why TCP head-of-line blocking kills real-time performance
+2. QUIC protocol — 0-RTT, connection migration, multiplexing, latency tradeoffs
+3. SCTP (Stream Control Transmission Protocol) — partial reliability, message boundaries
+4. DCCP (Datagram Congestion Control Protocol) — congestion control without reliability
+5. Raw socket programming — Ethernet frame crafting, custom protocols
+6. RDMA over Converged Ethernet (RoCE) — RoCEv1 vs RoCEv2, congestion control
+7. InfiniBand — native RDMA, SDR/DDR/QDR/FDR/EDR/HDR speeds, latency
+8. iWARP — RDMA over TCP, comparison with RoCE
+9. User-space TCP stacks — mTCP, F-Stack, libuinet, lwIP
+10. DPDK-based networking — pktgen, l3fwd, testpmd, custom pipeline
+11. AF_XDP — zero-copy socket for XDP, compared to DPDK
+12. TSN (Time-Sensitive Networking) — IEEE 802.1Qbv time-aware shaper, 802.1Qbu frame preemption
+13. PTP (Precision Time Protocol) — IEEE 1588, hardware timestamping, sub-microsecond sync
+14. NTP vs PTP for gaming — clock synchronization requirements
+15. Network QoS — DSCP marking, EF/AF classes, WRED, traffic shaping
+16. Congestion control — BBR, CUBIC, Vegas, Vegas for gaming
+17. Forward Error Correction (FEC) — Reed-Solomon, XOR-based, for packet loss recovery
+18. Network coding — fountain codes, random linear network coding
+19. Moonlight protocol analysis — ENet-based UDP, packet structure, sequence handling
+20. Parsec BUD (Brief User Datagram) — custom protocol, 7ms LAN latency achievement
+
+**Evidence Format for each finding:**
+```
+Claim: [claim with citation]
+Source: [source name]
+URL: [URL]
+Date: [date]
+Excerpt: [verbatim excerpt]
+Context: [context]
+Confidence: [high/medium/low]
+```
+
+Save complete output to: /mnt/agents/output/research/latency_dim05.md

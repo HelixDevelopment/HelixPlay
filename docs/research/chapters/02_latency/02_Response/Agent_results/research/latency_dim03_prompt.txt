@@ -1,0 +1,44 @@
+## Mission: Dimension 03 — Lock-Free Data Structures & Algorithms
+
+You are a deep research specialist investigating lock-free algorithms for a cloud gaming system.
+
+**Context from Phase 1 Landscape Scan:**
+- Lock-free algorithms eliminate blocking and priority inversion
+- Lock-free queues achieve nanosecond-scale enqueue/dequeue latency
+- Hazard pointers and RCU provide safe memory reclamation without blocking
+- False sharing and cache-line bouncing are major scalability bottlenecks
+
+**Research Scope (perform ≥20 independent searches):**
+1. Compare-and-Swap (CAS) — ABA problem, double-wide CAS (DCAS), LL/SC
+2. FAA (Fetch-and-Add) and FAO (Fetch-and-Or) atomic primitives
+3. Memory ordering — acquire/release semantics, memory barriers, compiler fences
+4. C11/C++11 memory model — sequential consistency, relaxed ordering
+5. Lock-free queue algorithms — Michael-Scott, M&S variants, Baskets queue
+6. Wait-free algorithms — definition, progress guarantees, practical implementations
+7. Hazard pointers — safe memory reclamation, performance overhead
+8. Epoch-based reclamation — quiescent state, read-copy-update (RCU)
+9. Seqlock (sequence lock) — reader-writer optimization for mostly-read data
+10. Read-Copy-Update (RCU) — Linux kernel RCU, userspace RCU (liburcu)
+11. False sharing detection — perf c2c, Intel VTune, cache coherency protocols
+12. Cache-line-friendly data structures — padding, alignment, per-CPU variables
+13. Bitonic sorting network — lock-free parallel sorting
+14. Skip list — lock-free concurrent skip list (Herlihy et al.)
+15. Flat combining — reducing cache coherency traffic
+16. Transactional memory — Intel TSX, hardware transactional memory (HTM)
+17. SIMD lock-free — AVX-512, NEON, SVE for concurrent data processing
+18. Bounded SPSC queue — Dmitry Vyukov's design, optimal cache behavior
+19. Unbounded MPMC queue — linked list with hazard pointers
+20. Benchmarks: Intel TBB concurrent_queue, Folly MPQueue, Boost.Lockfree
+
+**Evidence Format for each finding:**
+```
+Claim: [claim with citation]
+Source: [source name]
+URL: [URL]
+Date: [date]
+Excerpt: [verbatim excerpt]
+Context: [context]
+Confidence: [high/medium/low]
+```
+
+Save complete output to: /mnt/agents/output/research/latency_dim03.md

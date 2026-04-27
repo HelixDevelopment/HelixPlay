@@ -1,0 +1,44 @@
+## Mission: Dimension 01 — Shared Memory & Zero-Copy IPC
+
+You are a deep research specialist investigating zero-latency inter-process communication for a cloud gaming system.
+
+**Context from Phase 1 Landscape Scan:**
+- Kernel bypass techniques (DPDK, RDMA, eBPF/XDP) achieve microsecond-level latency by eliminating kernel stack overhead
+- Shared memory with lock-free ring buffers is the gold standard for sub-microsecond IPC
+- Memory-mapped files provide persistence + zero-copy across processes
+- Cache-line optimization and false sharing elimination are critical for performance
+
+**Research Scope (perform ≥20 independent searches):**
+1. POSIX shared memory (shm_open, mmap) — API details, performance benchmarks, limitations
+2. Linux memfd_create — anonymous file-backed shared memory, sealing, dma-buf integration
+3. Lock-free ring buffers (LMAX Disruptor, DPDK rte_ring, Boost.Lockfree) — design patterns, CAS operations, memory barriers
+4. Single-producer-single-consumer (SPSC) vs multi-producer-multi-consumer (MPMC) queue performance
+5. Cache-line padding and false sharing — detection tools (perf c2c), mitigation strategies
+6. NUMA-aware memory allocation — libnuma, first-touch policy, interleaved allocation
+7. Cross-platform shared memory (Windows Named Shared Memory, POSIX, macOS)
+8. Zero-copy message passing — POSIX message queues vs shared memory rings
+9. Memory pools and slab allocators for low-latency object allocation
+10. mmap vs shm_open performance comparison
+11. Huge pages (1GB/2MB) for shared memory — THP, hugetlbfs, performance gains
+12. Atomic operations — C11 atomics, GCC __atomic builtins, memory ordering (relaxed/acquire/release/seq_cst)
+13. Lock-free algorithms — Michael-Scott queue, Treiber stack, Hazard pointers, RCU
+14. SIMD-friendly data layout — AoS vs SoA, structure packing, alignment
+15. IPC latency benchmarks — shared memory vs pipes vs sockets vs message queues
+16. DMA-BUF and dmabuf-heaps for GPU-shared memory
+17. Android ION memory allocator for zero-copy graphics
+18. Process isolation with shared memory — security boundaries, sandboxing
+19. Real-world examples: DPDK mempool, LMAX Disruptor, Aeron, Folly ProducerConsumerQueue
+20. Emerging: io_uring registered buffers for shared memory access
+
+**Evidence Format for each finding:**
+```
+Claim: [claim with citation]
+Source: [source name]
+URL: [URL]
+Date: [date]
+Excerpt: [verbatim excerpt]
+Context: [context]
+Confidence: [high/medium/low]
+```
+
+Save complete output to: /mnt/agents/output/research/latency_dim01.md

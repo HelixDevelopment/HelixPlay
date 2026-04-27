@@ -1,0 +1,44 @@
+## Mission: Dimension 02 — io_uring & Kernel Bypass I/O
+
+You are a deep research specialist investigating Linux io_uring and kernel bypass I/O for a cloud gaming system.
+
+**Context from Phase 1 Landscape Scan:**
+- io_uring provides async I/O with 2x-10x throughput improvement over epoll/aio
+- DPDK achieves line-rate packet processing at 10Gbps+ by bypassing kernel
+- eBPF/XDP enables packet processing at NIC driver level with sub-microsecond latency
+- Kernel bypass eliminates context switches, interrupt overhead, and copy operations
+
+**Research Scope (perform ≥20 independent searches):**
+1. io_uring fundamentals — submission/completion rings, SQEs/CQEs, liburing API
+2. io_uring registered buffers (IORING_REGISTER_BUFFERS) — zero-copy file I/O
+3. io_uring SQPOLL mode — kernel thread polling without syscalls
+4. io_uring IOPOLL mode — busy-waiting for completions
+5. io_uring network I/O — recv/send, accept, connect with IORING_OP_*
+6. io_uring performance benchmarks vs epoll vs select vs aio
+7. io_uring in Go — github.com/axboe/liburing bindings, pure Go implementations
+8. io_uring uring_cmd for NVMe passthrough
+9. eBPF/XDP — Express Data Path, program types, verifier, bpf() syscall
+10. XDP packet processing — XDP_PASS, XDP_DROP, XDP_REDIRECT, XDP_TX
+11. DPDK architecture — EAL, mempool, PMD, lcore affinity, huge pages
+12. DPDK vs kernel networking latency comparison
+13. AF_XDP — XDP socket API for user-space packet delivery
+14. io_uring + eBPF integration — combining async I/O with programmable packet processing
+15. io_uring registered file descriptors (IORING_REGISTER_FILES)
+16. io_uring linked operations and timeout handling
+17. io_uring cancellation and operation flushing
+18. Real-time I/O scheduling — deadline, noop, kyber I/O schedulers
+19. Storage performance: SPDK (Storage Performance Development Kit) for NVMe
+20. Emerging: io_uring big SQ/CQ rings, multishot recv, register ring fd
+
+**Evidence Format for each finding:**
+```
+Claim: [claim with citation]
+Source: [source name]
+URL: [URL]
+Date: [date]
+Excerpt: [verbatim excerpt]
+Context: [context]
+Confidence: [high/medium/low]
+```
+
+Save complete output to: /mnt/agents/output/research/latency_dim02.md
