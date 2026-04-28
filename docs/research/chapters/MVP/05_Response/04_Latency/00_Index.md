@@ -182,6 +182,121 @@ the few legitimate-near-forbidden commands (`chrt`, `taskset`,
 `numactl`, `cgconfig`, `tc qdisc`, `ip link set`, `ethtool`)
 all run through `r18.SafeExec`.
 
+The R-18 sub-list **specific to this family** — privileged-but-safe
+operations that the family invokes through `r18.SafeExec` — is
+expanded relative to other families because of the kernel-/hardware-
+proximate scope. The wrapper accepts these argv shapes (verbatim
+allow-list, not regex):
+
+- `chrt -f <prio> <pid>` — set SCHED_FIFO priority on a HelixPlay
+  worker thread (C20 §3).
+- `taskset -pc <cpu-mask> <pid>` — pin a thread to isolated CPUs
+  (C20 §4).
+- `numactl --cpunodebind=<n> --membind=<n> <argv>` — NUMA-local
+  spawn for game / capture / encode workers (C20 §5, C23 §4).
+- `cgcreate -g <controller>:<group>` / `cgexec -g <controller>:<group>` —
+  cgroup v2 placement for the streaming session (C20 §6).
+- `tc qdisc add dev <iface> root <qdisc>` — DSCP marking + L4S
+  classifier (C19 §3, also visible to C13 §4 by reference).
+- `ip link set <iface> mtu <n>` — MTU tuning for jumbo frames on
+  LAN backhaul (C19 §6).
+- `ethtool -K <iface> rx-offload off` / `-G <iface> rx <ring>` —
+  RX offload + ring sizing for io_uring + NAPI (C16 §3).
+- `presentmon -session_name <name> -captureall` — measurement
+  scrape on the host (C24 §3, also inherited from C08 §10.6 via
+  the `presentmon` wrapper introduced there).
+
+No other argv shape is allowed. Anything outside this list — and
+any of the §11.5.1 forbidden commands — is rejected by `r18.SafeExec`
+at the `os/exec` boundary regardless of where it is called from.
+
+---
+
+## 7. Cross-cutting trade-off matrix
+
+The latency engineering surface is dominated by trade-offs that cut
+across multiple chapters. The matrix below names each cross-cutting
+trade-off and points to the chapter that owns the canonical
+resolution; downstream chapters cite the resolution by reference
+without relitigating.
+
+| Trade-off | Owning chapter | Decision summary |
+|-----------|----------------|------------------|
+| Zero-copy vs `memcpy` for small messages | C16 (§4) | `memcpy` for ≤ 1 KB packets (controller input is 16–32 B); zero-copy only for video frames (≥ 1 KB). Rationale: CZ-02 — buffer-management overhead dominates for small packets. |
+| io_uring vs DPDK vs raw kernel UDP | C19 (§3) | DPDK on dedicated cores at datacentre tier; io_uring + SQPOLL on general-purpose hosts; kernel UDP on web clients. Rationale: CZ-01 — operational-cost ladder dominates outside of tightly-controlled environments. |
+| PREEMPT_RT vs standard kernel | C20 (§2) | PREEMPT_RT on dedicated **host** machines only; standard kernel + SCHED_FIFO on **client** machines. Rationale: CZ-03 — RT kernel adds scheduling overhead to non-RT workloads + GPU drivers occasionally drift. |
+| 1 kHz vs 125 Hz USB polling | C21 (§3) | 1 kHz during active gameplay (game-state-aware); 125 Hz in menus / idle. Rationale: CZ-04 — power + interrupt cost only worth paying when input variance matters. |
+| Frame Warp / Reflex 2 capability | C22 (§4) | Capability-advertised only; never hard-depended on. Rationale: C13 Z4 — adoption slower than expected (THE FINALS + planned Valorant only ~1 year post-CES). |
+| VRR end-to-end vs decoder-only | C22 (§5) | VRR end-to-end as MVP differentiator. Rationale: C13 Z5 — open-source streaming clients still treat VRR as a gap. |
+| `make` / `new` per-frame vs pool-based | C23 (§3) | Pre-allocated pools mandatory on hot path (per-frame + per-input-event). Rationale: latency Insight #4 — at 1 kHz polling allocation cost dominates. |
+| p99 vs p999 reporting | C24 (§2) | p50 / p99 / **p999** at ≥ 10 K samples mandatory (p999 binding). Rationale: latency Insight #2 + Constitution §6. |
+| LMAX Disruptor vs Michael-Scott vs RCU | C17 (§3) | LMAX Disruptor pattern + cache-line padding for SPSC; Michael-Scott + hazard pointers for MPSC; RCU for read-mostly broadcast state. Rationale: HC-01 + HC-10 — SPSC dominates the input + frame-event hot paths. |
+
+This matrix is intentionally narrow — broader trade-offs that span
+multiple stream families (e.g. WebRTC vs custom UDP — C01;
+NATS vs RabbitMQ — C06; YugabyteDB vs CockroachDB — C09; Compose
+for TV vs Leanback — C12) are owned by the Architecture family
+and not relitigated here.
+
+---
+
+## 8. Initial open questions for the family
+
+Each chapter carries its own OQ list. The family-level questions
+below are open at this index landing and will be resolved by the
+chapter that owns each topic:
+
+- **OQ-L00-01** — Should HelixPlay ship a single PREEMPT_RT host
+  image or a tunable systemd preset toggleable per-tenant? Owned by
+  C20.
+- **OQ-L00-02** — Is GPUDirect RDMA practical for HelixPlay's
+  bare-metal deployment posture (C09 §7) given hyperscaler-vs-
+  neocloud asymmetric H100 supply? Owned by C18.
+- **OQ-L00-03** — Pion v4 raw-UDP transport vs DPDK-backed custom
+  UDP — does Phase-1 ship with kernel UDP and Phase-2 graduate to
+  DPDK on edge tier only? Owned by C19.
+- **OQ-L00-04** — Should the controller-input optimisation chapter
+  treat 8 kHz "high-poll" mice (Razer / Logitech) as a tier above
+  1 kHz, or as a rounding error? Owned by C21.
+- **OQ-L00-05** — Frame Warp on AMD (Anti-Lag 2) and Intel (XeLL)
+  reach feature parity with NVIDIA Reflex 2 in 2026Q3 per vendor
+  road-maps; does the host-agent capability schema need vendor-
+  neutral naming sooner than the Architecture-family C03 §4 entry
+  recorded? Owned by C22.
+
+---
+
+## 9. Relationship to V1 / post-MVP
+
+The MVP scope of this family is bounded by what HelixPlay needs to
+**land a kernel-bypass-aware reference deployment by Phase 12**
+(see [`../09_Implementation_Phases/Phase_12_Latency_Tuning.md`](../09_Implementation_Phases/Phase_12_Latency_Tuning.md)).
+Topics deferred to V1 / post-MVP are flagged here so they don't
+leak into MVP chapter scope:
+
+- **SmartNIC / DPU offload** (Mellanox BlueField-3, AMD Pensando,
+  Intel IPU E2000) — explicitly out of MVP per `04_Request.md`
+  ("we MUST use maximally the power of the hardware clients will
+  be using" — but the SmartNIC story is a host-side capex
+  optimisation, not a client-side capability). C19 references the
+  hardware-offload tier but does not implement it.
+- **InfiniBand / RoCEv2 cross-cluster** — out of MVP scope for
+  client-facing traffic; in-scope only for intra-rack RDMA between
+  game host + capture node + encode node. C18 §4 owns the
+  intra-rack story.
+- **Custom FPGA encoders** (NVIDIA NVENC is the floor; AMD AMF +
+  Intel QSV are equivalents) — out of MVP scope; deferred to V1
+  iff a tenant requests it under the operator-policy-opt-in
+  posture (System Overview §13).
+- **eBPF-based per-packet QoS** (`tc-bpf` + custom shaper) —
+  out of MVP scope; the L4S classifier in C19 §3 + DSCP marker
+  achieve the MVP residential-network outcome without a custom
+  shaper.
+
+The deferral list is recorded here so the chapter map in §2 stays
+sharp — every queued chapter resolves only what's in its MVP
+scope and points forward to V1 for the deferred items.
+
 ---
 
 End of `04_Latency/00_Index.md` — 2026-04-29.
