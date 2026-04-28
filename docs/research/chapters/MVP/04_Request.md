@@ -2,6 +2,10 @@
 
 Slogan: "Ultimate gaming experience!"
 
+Root directory containing documentation is docs, under it we have research materials: research.
+Research is divided in phases and we are starting work on our MVP, so all materials we have prepared for this task are under:
+docs/research/chapters/MVP
+
 We have performed several researches for the HelixPlay project and all results (with parent requests) are located under:
 01_base, 02_latency, and 03_video_technology directories.
 
