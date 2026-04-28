@@ -10,25 +10,27 @@ We have performed several researches for the HelixPlay project and all results (
 01_base, 02_latency, and 03_video_technology directories.
 
 Dive deep into all materials we have obtained and created - all documentation, created source code, 
-diagrams, graphs, schemas and other relevant materials.
+diagrams, graphs, schemes and other relevant materials.
 
 We MUST create final in-depth step by step implementation documentation with all phases of development,
 all tasks and sub-tasks (fine grained), detailed steps and as much as possible detail.
 
-We MUST merge all gathered knowledge into one big ulitmate project documentation with full specs redy for 
+We MUST merge all gathered knowledge into one big ultimate project documentation with full specs ready for 
 full development by our engineering team!
 
-Nothing from materials we have nprovided can be omitted! Nothing can be skipped or ignored!
+Nothing from materials we have provided can be omitted! Nothing can be skipped or ignored!
 Simplification or bluffing is strictly forbidden!
 
 We cannot have less material in ultimate documentation than in all 3 source research phases (directories)!
 
 We MUST dive deeper regarding each point and context to validate, verify and extend with additional details!
-We MUST use as much as possible comprehensive web research - for technical articles, howtos, research papers, opensourced codebase and
+We MUST use as much as possible comprehensive web research - for technical articles, how-to(s) (knowhows), research papers, open-sourced codebase and
 all this MUST be wisely used and properly incorporated into the project!
 
+All documentation and materials MUST be written and put in 05_Response directory (docs/research/chapters/MVP/05_Response) !!!
+
 Once full and final documentation with all materials we have mentioned is created, validated and verified in multiple-passes we can implement the whole System!
-It is not allowed to leave TODO / FIXME placholders, no dummy / placeholder classes, everything MUST be fully wired and no dead code or anything hanging left!
+It is not allowed to leave TODO / FIXME placeholders, no dummy / placeholder classes, everything MUST be fully wired and no dead code or anything hanging left!
 No skipping is allowed or bluffing of any kind! These are all MANDATORY constraints which MUST be part of the Constitution, CLAUDE.MD and AGENTS.MD!
 
 Mandatory constraints / rules to follow:
@@ -49,7 +51,7 @@ Mandatory constraints / rules to follow:
 - Every codebase is executed in Containers - every single Service, Infrastructure part (Database and others), Building, testing and devugging, scanning
 - Heavy scanning and checks: SonarQube, Snyk and other advanced code quality and security scanning solutions
 - Local only CI / CD (run inside the Containers)
-- All Comntainers work handled by our Containers submodule: https://github.com/vasic-digital/Containers
+- All Containers work handled by our Containers submodule: https://github.com/vasic-digital/Containers
 - We use all available Submodules already created under vasic-digital organization: https://github.com/vasic-digital/ so we do not create Submodules (Modules) for same purposes multipel times
 - If some Submodule does not have all features we need, we MUST extend it properly with additional features / functionalities (since we have full control of all vasic-digital and HelixDevelopment organizations)
 
@@ -61,7 +63,7 @@ Every single Submodule and piece of code MUST BE covered 100% with the following
 - Integration
 - E2E
 - Security
-- Benchmarking
+- Bench-marking
 - Chaos
 - Stress
 - Smoke
@@ -76,16 +78,16 @@ git@github.com:HelixDevelopment/HelixQA.git
 
 See how Challenges have been incorporated under same Projects project's root dir for HelixAgent and Catalogizer projects!
 
-IMPORTANT: For every single Submodule we add we MUST add as well all its dependency Submodules! FOr every single Submodule there is comprehensive documentation and fully accessible codebase 
-we can in-depth learn and analyse for easier and better incorporation!
+IMPORTANT: For every single Submodule we add we MUST add as well all its dependency Submodules! For every single Submodule there is comprehensive documentation and fully accessible codebase 
+we can in-depth learn and analyze for easier and better incorporation!
 
-IMPORTANT: Only Unit tests are allowed to have Mocks, Stubs, placeholder classes or hardcoded values! All other testing types and Systems MUST USE real production ready implementation and have 
+IMPORTANT: Only Unit tests are allowed to have Mocks, Stubs, placeholder classes or hard-coded values! All other testing types and Systems MUST USE real production ready implementation and have 
 the whole system (all Containers) ready, fully operational and running!
 
-IMPORTANT: Make sure that all existing tests and Challenges do work in anti-bluff manner - they MUST confirm that all tested codebase really works as expected! 
+IMPORTANT: Make sure that all existing tests and Challenges do work in anti-bluff manner - they MUST confirm that all tested code-base really works as expected! 
 We had been in position that all tests do execute with success and all Challenges as well, but in reality the most of the features does not work and can't be used! 
-This MUST NOT be the case and execution of tests and Challenges MUST guarantee the quality, the completition and full usability by end users of the product! 
-This MUST BE part of Constitution of our project, its CLAUDE.MD and AGENTS.MD if it is not there already, and to be applied to all Submodules's Constitutuon, CLAUDE.MD and AGENTS.MD as well (if not there already)!
+This MUST NOT be the case and execution of tests and Challenges MUST guarantee the quality, the completion and full usability by end users of the product! 
+This MUST BE part of Constitution of our project, its CLAUDE.MD and AGENTS.MD if it is not there already, and to be applied to all Submodules's Constitution, CLAUDE.MD and AGENTS.MD as well (if not there already)!
 
 Implementation steps:
 

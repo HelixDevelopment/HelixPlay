@@ -2,6 +2,24 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **Source of truth for project rules:** [`docs/research/chapters/MVP/05_Response/01_Constitution.md`](docs/research/chapters/MVP/05_Response/01_Constitution.md).
+> Where this file and the Constitution conflict, the Constitution wins. The
+> Constitution codifies clauses **R-01..R-18** drawn from `04_Request.md`,
+> plus **R-18 (Operational Integrity)** added 2026-04-28 after a session-
+> disruption incident — no command, hook, container, CI lane, or agent
+> prompt may suspend/hibernate/lock/terminate/crash the operator's host.
+> See Constitution §11.5 for the forbidden-commands list and the container
+> hazards inventory.
+>
+> **Synthesis programme master plan:** [`docs/research/chapters/MVP/05_Response/00_Master_Plan.md`](docs/research/chapters/MVP/05_Response/00_Master_Plan.md).
+> All chapter work, line targets, dispatch templates, and the work queue
+> live there.
+>
+> **System overview:** [`docs/research/chapters/MVP/05_Response/02_System_Overview.md`](docs/research/chapters/MVP/05_Response/02_System_Overview.md) is the navigation hub for the chapter family under `05_Response/`.
+>
+> **Non-Claude agents** (Codex, Cursor, Aider, etc.) read `AGENTS.md` at
+> the repo root, which carries the same content tailored to those tools.
+
 ## Repository state
 
 **This repo currently contains specifications and research only — no source code, no build system.** The MVP implementation has not started. Treat tasks here as documentation/specification work unless the user explicitly says they are kicking off implementation.
