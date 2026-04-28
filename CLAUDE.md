@@ -12,7 +12,9 @@ The directory layout reflects that:
   - `02_latency/` — zero-latency communication research (input→render→display budget, Reflex, BBR, FEC, DSCP, jitter buffer).
   - `03_video_technology/` — capture, codec (H.264/HEVC/AV1), encode, recording, audio (PCM, 5.1/7.1, AC3/Dolby) research.
   - `04_Request.md` — **authoritative MVP brief.** It supersedes the individual chapter requests where they conflict and lists the mandatory project-wide constraints. Read it before answering any planning question.
-- `docs/research/chapters/V1/` — placeholder for the next phase (currently only an empty `04_monitoring_and_monitors/` folder).
+
+  Per-chapter request files (superseded by `04_Request.md` on conflict): `01_base/01_Request.md`, `02_latency/01_Request.md`, `03_video_technology/Request.md` — note the last one drops the `01_` prefix; don't normalize, the repo is the source of truth. Response folders also drift in casing: `01_base/02_response/` (lowercase) vs. `02_latency/02_Response/` and `03_video_technology/02_Response/` (capital R).
+- `docs/research/chapters/V1/` — placeholder for the next phase (currently only an empty `04_monitoring_and_monitors/` folder). When V1 gets populated, mirror the MVP layout (`01_*/01_Request.md`, …, `04_Request.md`) so structure stays consistent.
 - `Upstreams/*.sh` — one script per remote that exports `UPSTREAMABLE_REPOSITORY`. Used by external tooling to pick a target remote; not run as part of any build here.
 
 The agent-generated research lives under each chapter's `02_response/` (or `02_Response/`) folder. The main long-form documents are:
@@ -21,6 +23,10 @@ The agent-generated research lives under each chapter's `02_response/` (or `02_R
 - `MVP/03_video_technology/02_Response/video-tech.agent.final/video-tech.agent.final.md` (plus `Agent_Results/` per-section files).
 
 When the user asks you to merge / extend / cross-reference research, these are the files to dive into — not the `.docx`/`.pdf`/`.zip` siblings.
+
+## Build / test / lint commands
+
+There are none yet. No `package.json`, no `go.mod`, no `Makefile`, no test runner, no lint config. If a task requires running a command, that's a signal the user is starting implementation — and per `04_Request.md` the runtime must be containerised from day one, so don't fake a local toolchain to "make it work."
 
 ## Mandatory project constraints (from `04_Request.md`)
 
@@ -54,6 +60,8 @@ origin      fetch=github, push=gitflic
 `.claude/settings.json` registers a `Stop` hook that runs `bash scripts/claim-check.sh` (5 s timeout). **The `scripts/` directory does not exist yet**, so the hook will fail until it's created — flag this if the user is troubleshooting hook output, and don't silently work around it.
 
 `.claude/settings.local.json` sets `defaultMode: bypassPermissions` for this repo. Tool calls won't prompt; the safety bar is your judgment, not the permission system. Be especially careful with destructive git operations (force push, reset --hard) and with the four configured remotes.
+
+The same file contains a stray allow-rule referencing `…/HelixAgent/.git/index.lock` — that's a copy/paste residue from a sibling project, not deliberate policy here. Don't extend it; if you're cleaning up, drop that line.
 
 ## What "doing a task" usually looks like here
 
