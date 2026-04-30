@@ -19,7 +19,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 >
 > **Non-Claude agents** (Codex, Cursor, Aider, etc.) read `AGENTS.md` at
 > the repo root, which carries the same content tailored to those tools.
-
+>
+> **User Mandate 2026-04-30:** All submodules MUST respect DRY, KISS, and Top 10
+> principles. Lazy initialization is the default (Constitution §5.2). Anti-bluff tests
+> MUST guarantee real end-user usability — green tests without working features are a
+> Constitution §1 violation. 100% coverage across all ten test types is mandatory.
+> Challenges + HelixQA integration is mandatory. All submodules MUST contain
+> Constitution, CLAUDE.md, AGENTS.md with these clauses baked in.
+ 
 ## Repository state
 
 **This repo currently contains specifications and research only — no source code, no build system.** The MVP implementation has not started. Treat tasks here as documentation/specification work unless the user explicitly says they are kicking off implementation.

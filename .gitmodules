@@ -1,0 +1,69 @@
+[submodule "Challenges"]
+	path = Challenges
+	url = git@github.com:vasic-digital/Challenges.git
+[submodule "Containers"]
+	path = Containers
+	url = git@github.com:vasic-digital/Containers.git
+[submodule "HelixQA"]
+	path = HelixQA
+	url = git@github.com:HelixDevelopment/HelixQA.git
+[submodule "EventBus"]
+	path = EventBus
+	url = git@github.com:vasic-digital/EventBus.git
+[submodule "Concurrency"]
+	path = Concurrency
+	url = git@github.com:vasic-digital/Concurrency.git
+[submodule "Auth"]
+	path = Auth
+	url = git@github.com:vasic-digital/Auth.git
+[submodule "Streaming"]
+	path = Streaming
+	url = git@github.com:vasic-digital/Streaming.git
+[submodule "Database"]
+	path = Database
+	url = git@github.com:vasic-digital/Database.git
+[submodule "Observability"]
+	path = Observability
+	url = git@github.com:vasic-digital/Observability.git
+[submodule "Discovery"]
+	path = Discovery
+	url = git@github.com:vasic-digital/Discovery.git
+[submodule "Middleware"]
+	path = Middleware
+	url = git@github.com:vasic-digital/Middleware.git
+[submodule "Security"]
+	path = Security
+	url = git@github.com:vasic-digital/Security.git
+[submodule "Messaging"]
+	path = Messaging
+	url = git@github.com:vasic-digital/Messaging.git
+[submodule "Cache"]
+	path = Cache
+	url = git@github.com:vasic-digital/Cache.git
+[submodule "Storage"]
+	path = Storage
+	url = git@github.com:vasic-digital/Storage.git
+[submodule "Memory"]
+	path = Memory
+	url = git@github.com:vasic-digital/Memory.git
+[submodule "RAG"]
+	path = RAG
+	url = git@github.com:vasic-digital/RAG.git
+[submodule "Recovery"]
+	path = Recovery
+	url = git@github.com:vasic-digital/Recovery.git
+[submodule "Plugins"]
+	path = Plugins
+	url = git@github.com:vasic-digital/Plugins.git
+[submodule "Media"]
+	path = Media
+	url = git@github.com:vasic-digital/Media.git
+[submodule "RateLimiter"]
+	path = RateLimiter
+	url = git@github.com:vasic-digital/RateLimiter.git
+[submodule "VectorDB"]
+	path = VectorDB
+	url = git@github.com:vasic-digital/VectorDB.git
+[submodule "Formatters"]
+	path = Formatters
+	url = git@github.com:vasic-digital/Formatters.git
