@@ -39,23 +39,23 @@ Per [Master Plan §3](../00_Master_Plan.md#3-output-structure) + §7.2:
 
 | ID  | Chapter                                          | Floor (lines) | Status     |
 |-----|--------------------------------------------------|--------------:|------------|
-| —   | [`00_Phase_Index.md`](00_Phase_Index.md) — this file | navigation     | **draft v3** |
+| —   | [`00_Phase_Index.md`](00_Phase_Index.md) — this file | navigation     | **draft v4** |
 | P00 | [`Phase_00_Foundation.md`](Phase_00_Foundation.md)   | 800 / **799 actual (≈100%)** | **draft** — at floor |
-| P01 | [`Phase_01_Containers_and_CI.md`](Phase_01_Containers_and_CI.md) | 500 / **408 actual (82%)** | **draft** — extended |
-| P02 | [`Phase_02_Core_Submodules.md`](Phase_02_Core_Submodules.md)   | 500 / **372 actual (74%)** | **draft** — extended |
-| P03 | [`Phase_03_Backend_Services.md`](Phase_03_Backend_Services.md) | 500 / **317 actual (63%)** | **draft** — extended |
-| P04 | [`Phase_04_Streaming_Pipeline.md`](Phase_04_Streaming_Pipeline.md) | 500 / **312 actual (62%)** | **draft** — extended |
-| P05 | [`Phase_05_Clients.md`](Phase_05_Clients.md)              | 500 / **317 actual (63%)** | **draft** — extended |
-| P06 | [`Phase_06_Host_Agent.md`](Phase_06_Host_Agent.md)        | 500 / **289 actual (58%)** | **draft** — extended |
-| P07 | [`Phase_07_Latency_Optimization.md`](Phase_07_Latency_Optimization.md) | 500 / **294 actual (59%)** | **draft** — extended |
-| P08 | [`Phase_08_Audio_Surround.md`](Phase_08_Audio_Surround.md) | 500 / **298 actual (60%)** | **draft** — extended |
-| P09 | [`Phase_09_Recording_and_Replay.md`](Phase_09_Recording_and_Replay.md) | 500 / **396 actual (79%)** | **draft** — extended |
+| P01 | [`Phase_01_Containers_and_CI.md`](Phase_01_Containers_and_CI.md) | 500 / **452 actual (90%)** | **draft** — extended |
+| P02 | [`Phase_02_Core_Submodules.md`](Phase_02_Core_Submodules.md)   | 500 / **430 actual (86%)** | **draft** — extended |
+| P03 | [`Phase_03_Backend_Services.md`](Phase_03_Backend_Services.md) | 500 / **414 actual (83%)** | **draft** — extended |
+| P04 | [`Phase_04_Streaming_Pipeline.md`](Phase_04_Streaming_Pipeline.md) | 500 / **399 actual (80%)** | **draft** — extended |
+| P05 | [`Phase_05_Clients.md`](Phase_05_Clients.md)              | 500 / **397 actual (79%)** | **draft** — extended |
+| P06 | [`Phase_06_Host_Agent.md`](Phase_06_Host_Agent.md)        | 500 / **368 actual (74%)** | **draft** — extended |
+| P07 | [`Phase_07_Latency_Optimization.md`](Phase_07_Latency_Optimization.md) | 500 / **382 actual (76%)** | **draft** — extended |
+| P08 | [`Phase_08_Audio_Surround.md`](Phase_08_Audio_Surround.md) | 500 / **379 actual (76%)** | **draft** — extended |
+| P09 | [`Phase_09_Recording_and_Replay.md`](Phase_09_Recording_and_Replay.md) | 500 / **440 actual (88%)** | **draft** — extended |
 | P10 | [`Phase_10_Monetization_and_Auth.md`](Phase_10_Monetization_and_Auth.md) | 500 / **435 actual (87%)** | **draft** — extended |
 | P11 | [`Phase_11_Hardening_and_Security.md`](Phase_11_Hardening_and_Security.md) | 500 / **468 actual (94%)** | **draft** — extended |
 | P12 | [`Phase_12_Beta_Launch.md`](Phase_12_Beta_Launch.md)      | 500 / **411 actual (82%)** | **draft** — extended |
 | P13 | [`Phase_13_GA.md`](Phase_13_GA.md)                        | 500 / **460 actual (92%)** | **draft** — extended |
 
-**Family total:** 5,747 lines across 14 phase chapters + index — improved from 4,466 (+29%) via floor-extension pass on Phase_01..Phase_13. Each phase chapter now carries: canonical task / subtask catalogue + per-task subtask listings + exit criteria + risk register + cross-family deps + acceptance + calendar + per-phase observability catalogue (Prometheus metrics + Grafana dashboards) + SLI/SLO definitions + operator runbook reference + implementation considerations + cost estimation + cross-mirror parity verification + anti-bluff verification block. Per-phase floor compliance ranges from 58% (Phase_06) to ≈100% (Phase_00); 6 chapters at ≥ 80% floor; further floor-extension queued as continuous-improvement work post-GA per [Master Plan §9 Definition of Done](../00_Master_Plan.md#9-definition-of-done) hand-off.
+**Family total:** 6,405 lines across 14 phase chapters + index — improved from 4,466 baseline (+44%) via three floor-extension passes (Sessions 11+12+13). Each phase chapter now carries: canonical task / subtask catalogue + per-task subtask listings + per-task acceptance criteria (§10a) + exit criteria + risk register + per-risk mitigation detail (§13a) + cross-family deps + acceptance + calendar + per-phase observability catalogue (Prometheus metrics + Grafana dashboards) + SLI/SLO definitions + operator runbook reference + implementation considerations + cost estimation + cross-mirror parity verification + anti-bluff verification block. Per-phase floor compliance ranges from 74% (Phase_06) to ≈100% (Phase_00); **9 chapters at ≥ 80% floor**; remaining 5 chapters at 74-79% (Phase_05..Phase_08). Further floor-extension queued as continuous-improvement work post-GA per [Master Plan §9 Definition of Done](../00_Master_Plan.md#9-definition-of-done) hand-off.
 
 ---
 
