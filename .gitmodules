@@ -67,3 +67,6 @@
 [submodule "Formatters"]
 	path = Formatters
 	url = git@github.com:vasic-digital/Formatters.git
+[submodule "vasic-digital/Catalogizer"]
+	path = vasic-digital/Catalogizer
+	url = git@github.com:vasic-digital/Catalogizer.git

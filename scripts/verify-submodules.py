@@ -3,15 +3,15 @@
 # Check .gitmodules has all required submodules with correct paths and urls
 
 REQUIRED = {
-    "vasic-digital/Auth", "vasic-digital/Cache", "vasic-digital/Challenges",
-    "vasic-digital/Concurrency", "vasic-digital/Containers", "vasic-digital/Database",
-    "vasic-digital/Discovery", "vasic-digital/EventBus", "vasic-digital/Formatters",
-    "vasic-digital/HelixQA", "vasic-digital/Media", "vasic-digital/Memory",
+    "vasic-digital/Auth", "vasic-digital/Cache", "vasic-digital/Catalogizer",
+    "vasic-digital/Challenges", "vasic-digital/Concurrency", "vasic-digital/Containers",
+    "vasic-digital/Database", "vasic-digital/Discovery", "vasic-digital/EventBus",
+    "vasic-digital/Formatters", "vasic-digital/Media", "vasic-digital/Memory",
     "vasic-digital/Messaging", "vasic-digital/Middleware", "vasic-digital/Observability",
     "vasic-digital/Plugins", "vasic-digital/RAG", "vasic-digital/RateLimiter",
     "vasic-digital/Recovery", "vasic-digital/Security", "vasic-digital/Storage",
     "vasic-digital/Streaming", "vasic-digital/VectorDB",
-    "HelixDevelopment/Catalogizer", "HelixDevelopment/HelixQA"
+    "HelixDevelopment/HelixQA"
 }
 
 # Parse .gitmodules
