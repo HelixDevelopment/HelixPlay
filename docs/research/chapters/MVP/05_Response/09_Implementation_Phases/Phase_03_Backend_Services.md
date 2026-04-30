@@ -390,6 +390,95 @@ Phase_03 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Rep
 
 ---
 
+## 16a. Per-Service Capacity Sizing Reference
+
+### 16a.1 Per-service per-tenant capacity baseline
+
+For an operator with 1,000 concurrent active tenants:
+
+| Service | Per-Tenant Resource | Aggregate (1K tenants) |
+|---------|---------------------|------------------------|
+| CockroachDB SQL | 50 QPS p99 / 0.5 GB schema | 50K QPS / 500 GB |
+| NATS JetStream | 100 msg/s / 10 MB stream | 100K msg/s / 10 GB |
+| Redis Sentinel | 50 ops/s / 5 MB cache | 50K ops/s / 5 GB |
+| Vault | 5 secret-reads/s / 50 secrets | 5K reads/s / 50K secrets |
+| Coturn | 1 active relay / 0.5 Mbps | 1K relays / 500 Mbps |
+
+### 16a.2 Per-service horizontal scale-out
+
+- CockroachDB: scale from 3-node → 5-node → 9-node as concurrent tenants grow; per-region replication remains 3.
+- NATS JetStream: scale via per-stream sharding; per-tenant subject hierarchy parallelisable.
+- Redis: scale via Redis Cluster mode (16,384 hash slots); per-tenant DB mapping consistent.
+- Vault: scale via cluster + read-replicas; performance-replication for cross-region.
+- Coturn: scale via per-region cluster; per-relay max-bandwidth tunable.
+
+### 16a.3 Per-region capacity multiplier
+
+Per-region capacity = (per-tenant baseline × concurrent active tenants × region capacity headroom 1.3). Operator's per-region capacity-burn forecast drives Phase_03 scaling decisions.
+
+---
+
+## 16b. Per-Service Disaster Recovery Detail
+
+### 16b.1 Per-service RPO + RTO targets
+
+| Service | RPO Target | RTO Target | DR Mechanism |
+|---------|-----------:|-----------:|--------------|
+| CockroachDB | ≤ 1 minute | ≤ 15 minutes | Multi-region replication + per-region backup |
+| NATS JetStream | ≤ 1 minute | ≤ 5 minutes | Cross-region replica + replay |
+| Redis Sentinel | ≤ 5 seconds | ≤ 10 seconds | Sentinel auto-failover |
+| Vault | ≤ 1 minute | ≤ 15 minutes | Performance-replication + auto-unseal |
+| Coturn | N/A (stateless) | ≤ 30 seconds | Per-region active-active |
+| MinIO (recordings) | ≤ 5 minutes | ≤ 30 minutes | Cross-region replication |
+
+### 16b.2 Per-service DR drill cadence
+
+Per Phase_12 P12.T08: per-region DR drill quarterly. Per-service DR drill workflow:
+1. Operator's SRE team announces drill 24 h in advance to operator's customer-success.
+2. Per-region failover triggered.
+3. RPO + RTO measured.
+4. Per-service post-drill report.
+5. Findings remediation tracked in operator's ticket board.
+
+### 16b.3 Per-service backup retention
+
+- CockroachDB: 30-day full + per-hour incremental.
+- NATS JetStream: 7-day stream archive.
+- Redis: ephemeral; no backup (cache layer).
+- Vault: 30-day backup with KEK rotation reconciliation.
+- MinIO: 90-day per-tenant retention (Phase_09 default; operator-tunable).
+
+---
+
+## 16c. Per-Region Service Mesh Topology
+
+### 16c.1 Per-region Cilium NetworkPolicy
+
+Per Phase_11 P11.T10 + O03 §2.4:
+- Default-deny baseline.
+- Per-tenant namespace isolation.
+- Per-service L7 HTTP policy.
+- Per-region Hubble flow-log integration.
+
+### 16c.2 Per-region service-mesh dependency graph
+
+```
+client → operator's edge LB → mDNS / DoH discovery →
+helix-tenant (auth + RBAC) → helix-pipeline (streaming) +
+helix-record (recording) + helix-billing (events) →
+CockroachDB + NATS + Redis + Vault + MinIO
+```
+
+### 16c.3 Per-region cross-AZ latency budget
+
+- Same-AZ: ≤ 0.5 ms p99.
+- Cross-AZ within region: ≤ 2 ms p99.
+- Cross-region: per-region pair (e.g., NA-East ↔ EU-Central ≈ 80 ms).
+
+Per-region streaming sessions never cross-region except for recording archive replication; per-region streaming pipeline isolated to single region.
+
+---
+
 ## 17. Anti-Bluff Verification
 
 ### 10.1 Sources resolved

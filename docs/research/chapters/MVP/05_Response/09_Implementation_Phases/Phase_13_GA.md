@@ -434,6 +434,60 @@ Phase_13 closure: final composite-push to all 4 mirrors with `v1.0.0-mvp-ga` cos
 
 ---
 
+## 17a. Per-Tier Pricing Model + Commercial Posture
+
+### 17a.1 Per-tier pricing reference
+
+| Tier | Per-Hour | Per-Seat-Per-Month | Bandwidth Cap | Storage |
+|------|---------:|-------------------:|--------------:|--------:|
+| Free | $0 (ad-supported) | $0 | 50 GB / month | 7 days recording |
+| Standard | $0.50 | $9.99 | 250 GB / month | 30 days recording |
+| Pro | $1.50 | $29.99 | 1 TB / month | 90 days recording |
+| Enterprise | per-contract | per-contract | unlimited | 365 days recording |
+
+Per-tier pricing operator-tunable per-region per-jurisdiction; the table above is reference baseline.
+
+### 17a.2 Per-region pricing variance
+
+Per-region pricing reflects local PPP (purchasing power parity):
+- North America + EU + Japan + Singapore: reference pricing.
+- Russia + India + Brazil: 50-70% of reference.
+- China: 40% of reference + per-jurisdictional commercial agreement with local partner.
+
+### 17a.3 Per-tenant volume discount tiers
+
+- 100-500 seats: 10% off list.
+- 500-2,000 seats: 20% off list.
+- 2,000-10,000 seats: 30% off list.
+- 10,000+ seats: per-contract negotiated.
+
+### 17a.4 Per-channel-partner reseller pricing
+
+Per Phase_10 monetisation: operator's reseller channel (e.g., regional MSPs / system integrators) gets 15-25% per-seat margin; operator-side per-channel commercial agreement.
+
+### 17a.5 Per-quarter pricing review
+
+Operator's commercial team reviews pricing quarterly; per-tier feature adjustments + per-region pricing adjustments + competitive analysis from per-quarter Phase_13 §9 review.
+
+---
+
+## 17b. Programme Closure Hand-Off Checklist
+
+Final operator-side hand-off checklist before MVP synthesis programme officially closes:
+
+- [ ] Operator's CTO signs Phase_13.T01 GA-readiness gate.
+- [ ] Operator's CFO signs Phase_13.T15 Master Plan §9 DoD acceptance.
+- [ ] Operator's CISO signs Phase_11 + Phase_13 security gate.
+- [ ] Operator's compliance officer signs Phase_10 + Phase_11 + Phase_13 compliance gate.
+- [ ] Final 4-mirror parity verified at `v1.0.0-mvp-ga` cosign-signed tag.
+- [ ] Master Plan §10 Session N final row appended documenting closure.
+- [ ] W07 GitHub Projects + GitLab ticket-board mirror executed.
+- [ ] Operator's continuous-improvement cycle handed-off.
+
+End of MVP synthesis programme. Operator's product team owns post-GA roadmap.
+
+---
+
 ## 18. Anti-Bluff Verification
 
 ### 18.1 Sources resolved

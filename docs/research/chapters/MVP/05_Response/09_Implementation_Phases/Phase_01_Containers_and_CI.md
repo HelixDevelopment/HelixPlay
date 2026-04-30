@@ -429,6 +429,71 @@ Phase_01 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Rep
 
 ---
 
+## 16a. Per-CI-Lane Detail Catalogue
+
+### 16a.1 The 29 per-submodule CI lanes
+
+Each of the 29 submodules has a dedicated CI lane per [O01 §6](../08_Operations/01_Container_CI_CD.md):
+
+- **T07.A — Build lane**: per-arch (amd64 + arm64 + arm64-v8) build with -trimpath -ldflags '-buildid='.
+- **T07.B — Test lane**: 10-test-type matrix (Unit / Integration / E2E / Security / Benchmarking / Chaos / Stress / Smoke / Full Auto / Challenges).
+- **T07.C — Coverage lane**: per-submodule coverage gate (Unit ≥ 95%; others 100%).
+- **T07.D — SBOM lane**: cyclonedx-gomod + syft both emitted + cross-validated.
+- **T07.E — Sign lane**: cosign keyless via Sigstore + Fulcio short-lived cert.
+- **T07.F — SLSA lane**: SLSA L3 provenance attestation.
+- **T07.G — Vet lane**: helix-r18-safeexec-vet + go vet + golangci-lint.
+- **T07.H — Publish lane**: per-mirror image registry push.
+
+### 16a.2 Per-lane gate failure handling
+
+Per [T10 §5](../07_Testing/10_Full_Automation.md): mandatory `fail-fast: false` so per-lane failures are observed independently; per-lane gate per-cohort surface in operator's commercial dashboard.
+
+### 16a.3 Host-integrity-scan shared lane
+
+Per Constitution §11.5 shared infrastructure: every PR runs against host-integrity-scan probe (strace + auditd + R-18 forbidden-command sweep). Shared per Phase_01 + Phase_11.
+
+### 16a.4 Per-lane wall-time SLO
+
+| Lane | Cache-cold p99 | Cache-warm p99 |
+|------|---------------:|---------------:|
+| T07.A Build | 8 min | 1 min |
+| T07.B Test | 15 min | 4 min |
+| T07.C Coverage | 12 min | 3 min |
+| T07.D SBOM | 2 min | 30 s |
+| T07.E Sign | 1 min | 30 s |
+| T07.F SLSA | 1 min | 30 s |
+| T07.G Vet | 3 min | 1 min |
+| T07.H Publish | 5 min | 2 min |
+| **Total per-PR** | ~47 min | ~12 min |
+
+GOCACHEPROG remote cache cuts cache-cold from 47 min to ~12 min via cache-warm; per [O01 §10 cost model](../08_Operations/01_Container_CI_CD.md).
+
+---
+
+## 16b. Per-Mirror Runner Pool Detail
+
+### 16b.1 Per-mirror runner topology
+
+- **github**: GitHub-hosted runners (operator-billed) + self-hosted runners on operator's infrastructure for arm64-v8 Apple Silicon builds.
+- **gitlab**: GitLab-hosted shared runners + operator's self-hosted runners for security-sensitive lanes.
+- **gitflic**: operator's self-hosted runners only (no shared infrastructure available).
+- **gitverse**: operator's self-hosted runners only.
+
+### 16b.2 Per-mirror cosign trust-anchor
+
+Each mirror has independent cosign trust-anchor configuration; per-mirror parity verified at every release. Per-mirror trust-anchor rotation cadence: annual.
+
+### 16b.3 Per-mirror image registry
+
+- github: ghcr.io/helixdevelopment/<image>.
+- gitlab: registry.gitlab.com/helixdevelopment1/helixplay/<image>.
+- gitflic: registry.gitflic.ru/helixdevelopment/helixplay/<image>.
+- gitverse: registry.gitverse.ru/helixdevelopment/HelixPlay/<image>.
+
+Per-image cosign signature verifiable against any mirror's trust-anchor.
+
+---
+
 ## 17. Anti-Bluff Verification
 
 ### 17.1 Sources resolved

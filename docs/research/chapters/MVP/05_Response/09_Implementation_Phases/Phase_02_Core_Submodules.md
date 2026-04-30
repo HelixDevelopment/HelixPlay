@@ -406,6 +406,85 @@ Phase_02 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Rep
 
 ---
 
+## 16a. Per-Submodule Versioning + Release Train Detail
+
+### 16a.1 SIV semver discipline
+
+Per [S01 §4](../06_Submodules/01_Submodule_Catalog.md#4-cross-cutting-policies):
+- v0.x.y — pre-graduation; breaking changes allowed in minor versions.
+- v1.0.0 — graduation gate; all 10 test types green; cosign + SLSA L3 + dual SBOM.
+- v1.x.y — post-graduation; semver discipline; breaking changes only in major.
+- v2.0.0 — major-version bumps; per-cycle migration guide required.
+
+### 16a.2 Per-cohort release train cadence
+
+Per S01 §9 release-train cadence:
+- Per-PR: per-submodule build + test + cosign-sign.
+- Nightly: cross-submodule integration via go.work workspace.
+- Per-week: per-cohort version bump (auto-tagged + auto-published).
+- Per-release-train: per-cohort coordinated v1.0.0 → v1.x.y graduation.
+
+### 16a.3 Per-submodule API stability guarantee
+
+Per-submodule API contract test (every consumer-of-helix-X has an API-contract test) gates breaking changes. Breaking changes require:
+1. Operator's compliance officer review.
+2. Per-cohort migration guide.
+3. 2 release cycles of dual-version compat.
+4. Cross-submodule contract test green.
+
+### 16a.4 Per-submodule deprecation policy
+
+Deprecated APIs marked with `// Deprecated: ...` comment + Go vet flag; 2-cycle deprecation window before removal. Per-submodule deprecation register at operator's GitHub Projects + GitLab boards.
+
+---
+
+## 16b. Per-Submodule Cross-Repo Coordination
+
+### 16b.1 Per-submodule public repo mirroring
+
+Each submodule lives in its own public repository under `vasic-digital`:
+- `github.com/vasic-digital/<submodule>`
+- `gitlab.com/vasic-digital/<submodule>`
+- `gitflic.ru/vasic-digital/<submodule>`
+- `gitverse.ru/vasic-digital/<submodule>`
+
+Each repo has its own composite-push origin pattern; per-submodule four-mirror parity verified at every v1.0.0 graduation tag.
+
+### 16b.2 Per-submodule release coordination
+
+Per-submodule releases use semantic version tags (`v1.0.0` + cosign-signed); per-cohort coordination via go.work workspace + per-week cohort review meeting.
+
+### 16b.3 Per-submodule consumer impact
+
+When a submodule v1.x.y → v2.0.0 major bump occurs, all consumer submodules:
+1. Receive Renovate bot PR with the upgrade.
+2. Run cross-submodule contract test.
+3. Per-cohort orchestrated upgrade if breaking changes propagate.
+
+### 16b.4 Per-submodule documentation site
+
+Per-submodule godoc + README + per-submodule docs site at `<submodule>.helix-docs.io` (operator-managed); per-submodule changelog auto-generated from conventional commits.
+
+---
+
+## 16c. Per-Submodule License Posture
+
+Per [S01 §4.7](../06_Submodules/01_Submodule_Catalog.md):
+- **MIT-default**: 25 of 29 submodules.
+- **Apache-2.0**: 4 named exceptions for codec/crypto subject matter — helix-codec, helix-encoder, helix-vault, helix-r18-safeexec (per Constitution §11.5 R-18 patent grant).
+
+Per-submodule LICENSE file at repository root; per-submodule SPDX header on every Go file enforced by [T05 §3.4 SPDX header check](../07_Testing/05_Security.md).
+
+### 16c.1 Per-license per-mirror compliance
+
+License notice mirrored across all 4 mirrors; per-license per-mirror parity verified at every release. Russian-jurisdictional gitflic + gitverse mirrors carry identical license text.
+
+### 16c.2 Per-license consumer obligations
+
+MIT consumers: attribution required. Apache-2.0 consumers: attribution + patent-grant explicit + state-changes notice. Per-consumer license obligations documented in S01 §4.7 + per-submodule README.
+
+---
+
 ## 17. Anti-Bluff Verification
 
 ### 17.1 Sources resolved

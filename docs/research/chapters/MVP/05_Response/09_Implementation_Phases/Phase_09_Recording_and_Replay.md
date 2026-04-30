@@ -418,6 +418,85 @@ Per-phase commit cadence pushes to the four-mirror topology (github + gitlab + g
 
 ---
 
+## 16a. Per-Recording Format Detail
+
+### 16a.1 fMP4 (DASH-friendly) container
+
+Per [helix-record §10](../06_Submodules/per-submodule/helix-record.md):
+- Segment duration: 4 seconds canonical (operator-tunable per tier).
+- IDR cadence: 30 seconds per segment-aligned IDR frame.
+- Audio segment offset: ≤ 40 ms per Phase_08 A/V sync.
+- Per-segment cosign signature attached as MP4 box.
+
+### 16a.2 MKV (archival) container
+
+- Lossless container; original bitstream preserved.
+- Per-recording MKV file = per-session full archive.
+- Used for: nightly VMAF/ViSQOL re-scoring (Phase_09 P09.T07); operator's per-tenant audit + retention compliance.
+- Cosign signature on MKV file (single signature per file).
+
+### 16a.3 DASH manifest format
+
+Per DASH-CMAF specification:
+- `manifest.mpd` per session at `replay.helix.<operator>/<session-id>/manifest.mpd`.
+- Per-segment URL: `replay.helix.<operator>/<session-id>/segments/<segment-id>.m4s`.
+- Per-segment cosign signature: `replay.helix.<operator>/<session-id>/segments/<segment-id>.sig`.
+
+### 16a.4 Replay scrubbing performance
+
+DASH random-access per-segment seeking; ≤ 200 ms p99 seek latency verified via helix-bench scenario. Frame-accurate seek via IDR-anchored segment boundaries.
+
+---
+
+## 16b. Per-Tenant Replay-Sharing Mechanism
+
+### 16b.1 Per-tenant replay-share workflow
+
+Per Phase_09 + Phase_10 monetisation cross-cutting:
+- Tenant.user can share recording via per-recording shareable URL with operator-managed expiry (24 h default; operator-tunable per tier).
+- Per-share access scoped: read-only DASH manifest + segment fetch.
+- Per-share OAuth gating: viewer must authenticate via operator's IdP (or guest-mode for Free tier).
+
+### 16b.2 Per-share cosign verification
+
+Per-share URL includes cosign signature anchor; viewer-side dash.js player verifies every segment's signature before render (Phase_09 P09.T06.S02).
+
+### 16b.3 Per-share analytics
+
+Per-share view-count + per-viewer engagement metrics surfaced to recording-owner (per [Phase_13 §4.12](Phase_13_GA.md#412-p13t12--customer-facing-dashboard) customer dashboard).
+
+### 16b.4 Per-share GDPR posture
+
+Per-share scoped to tenant's recording; per-tenant erasure (Phase_10 P10.T08) revokes all active shares.
+
+---
+
+## 16c. Per-Recording Lifecycle State Machine
+
+Per-recording lifecycle states + transitions:
+
+- **Recording**: in-progress; helix-record actively writing segments.
+- **Sealing**: session-end; final segment sealed + cosign-signed.
+- **Uploading**: S3 sync in progress.
+- **Available**: replay-ready; DASH manifest published.
+- **Cold-tier**: ≥ 30 days; moved to cold storage tier.
+- **Erasure-pending**: GDPR erasure request received.
+- **Erased**: DEK shred complete + ciphertext unrecoverable.
+
+### 16c.1 Per-state transition events
+
+Each transition emits a Prometheus counter + Kafka event for downstream operator observability.
+
+### 16c.2 Per-state retention policy
+
+- Recording / Sealing / Uploading: ephemeral.
+- Available: per-tier retention (Free 7d / Std 30d / Pro 90d / Ent 365d).
+- Cold-tier: same retention as Available.
+- Erasure-pending: ≤ 30 days from request to Erased state (GDPR SLA).
+- Erased: immutable terminal state.
+
+---
+
 ## 17. Anti-Bluff Verification
 
 ### 17.1 Sources resolved

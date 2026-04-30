@@ -346,6 +346,152 @@ Phase_06 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Rep
 
 ---
 
+## 16a. Per-Launcher Integration Deep Dive
+
+### 16a.1 Steam (canonical)
+
+**Authentication:** OpenID 2.0 (Steam Login) → operator-side Web API key per-tenant; PKCE flow for native clients.
+
+**Game ownership API:** `ISteamUser/GetOwnedGames` — returns appid list per Steam account; cached for 24 h per [helix-tenant §9.5](../06_Submodules/per-submodule/helix-tenant.md). Rate-limit: 100,000 calls/day per Web API key.
+
+**Launch sequence:** helix-launcher.steam → `steam://launch/<appid>` URI handler (operator-mediated permission); Steam Input controller-config inheritance via Steam Input API.
+
+**Subprocess wrap:** Steam process invocation wrapped in helix-r18-safeexec with operator-side EULA review (per CZ-7 closure).
+
+**Quirks register:**
+- Z-1: Vanguard motherboard attestation rejects host (per-game compatibility matrix).
+- Counter-Strike 2 + Dota 2 + most Valve titles: Steam Input integration verified.
+- Per-Steam-Family-Sharing: ownership-API returns shared-game list — operator-side commercial-tier decision on whether to honor.
+
+### 16a.2 GOG
+
+**Authentication:** Galaxy 2.0 via OAuth + operator-side Galaxy SDK integration.
+
+**Game ownership API:** Galaxy SDK `Owner.GetOwnedGames`; per-game DRM-free distribution model simplifies launcher invocation.
+
+**Launch sequence:** helix-launcher.gog → operator-side GOG Galaxy fork or direct executable launch (DRM-free titles).
+
+**Quirks register:**
+- Per-game custom launchers (e.g., Witcher 3 Galaxy launcher); operator-side per-game executable mapping.
+
+### 16a.3 Epic Online Services
+
+**Authentication:** EOS SDK + Bearer token; per-tenant operator-side EOS Product ID + sandbox configuration.
+
+**Game ownership API:** EOS Ecom Service `QueryEntitlements`; per-Epic-account entitlement list.
+
+**Launch sequence:** helix-launcher.epic → `com.epicgames.launcher://apps/<gameid>?action=launch&silent=true` URI handler.
+
+**Quirks register:**
+- Per-Epic Free Game weekly: ownership-API returns transient entitlements — operator-side caching strategy per Phase_10 monetisation.
+
+### 16a.4 Battle.net
+
+**Authentication:** Per-tenant operator-side Battle.net OAuth credentials.
+
+**Game ownership API:** Battle.net Web API + per-game query (some games unsupported per operator's commercial agreement).
+
+**Launch sequence:** helix-launcher.bnet → `battlenet://<gamecode>` URI handler. **Per Z-3 (C08 §9 addendum): Battle.net URI broken since 2024** — per-game launcher fallback via direct executable invocation.
+
+**Quirks register:**
+- Z-4: Riot client (LoL / Valorant) uses unified launcher with no per-game URI — per-game fallback to direct executable.
+- Vanguard kernel-mode anti-cheat (Valorant) requires host motherboard attestation — Vanguard-protected games default-disabled per Z-1.
+
+### 16a.5 Per-launcher commercial agreement matrix
+
+| Launcher | OAuth | Game-Ownership API | Direct Launch | Operator-Side EULA Review |
+|----------|:-----:|:------------------:|:-------------:|:-------------------------:|
+| Steam | ✓ | ✓ | ✓ via URI | required (per CZ-7) |
+| GOG | ✓ | ✓ | ✓ via direct exec | required |
+| Epic | ✓ | ✓ | ✓ via URI | required |
+| Battle.net | ✓ | partial | ✗ URI broken (Z-3) | required |
+| Riot | partial | ✗ | partial | per-game review |
+
+---
+
+## 16b. Per-OS Host Agent Deployment Walkthrough
+
+### 16b.1 Linux deployment (canonical)
+
+**Distro support:** Ubuntu 24.04 LTS + 22.04 LTS, Debian 12, Fedora 40+, Arch (AUR), NixOS (per-flake).
+
+**Pre-deployment checklist:**
+1. Operator-provisioned hardware: NVIDIA RTX 30+ recommended; 32 GB RAM; dedicated 1 Gbps NIC.
+2. NVIDIA driver ≥ 550.54.14 + nvidia-peermem kernel module.
+3. PREEMPT_RT kernel (recommended) or stock kernel ≥ 6.6 (acceptable).
+4. systemd ≥ 252.
+5. Operator's container runtime (Podman ≥ 4.0 or Docker Engine ≥ 25.0).
+
+**Install procedure:**
+1. `helix-agent install --tenant=<id>` bootstraps systemd unit + helix-r18-safeexec policy.
+2. `helix-agent register --mdns` registers `_helix-host._grpc._tcp.local.` SRV record.
+3. `helix-agent verify` runs P06.T11 end-to-end smoke.
+
+**Service management:** systemd unit at `/etc/systemd/system/helix-agent.service`; auto-restart on crash (RP06-08); log shipping to operator's Loki via journald.
+
+### 16b.2 Windows deployment
+
+**Windows version:** 11 24H2+ (KMHESP fix for EAC compatibility per Z-5); Windows Server 2022.
+
+**Pre-deployment checklist:**
+1. NVIDIA driver ≥ 552.22 (Windows-specific).
+2. Visual C++ Redistributable 2015-2022.
+3. Windows Service installer (.msi) signed via Microsoft Authenticode.
+4. WSL2 not required (host agent runs native).
+
+**Install procedure:**
+1. MSI installer creates Windows Service "HelixAgent".
+2. Per-tenant configuration via Group Policy or registry.
+3. mDNS via Bonjour Service (auto-installed by MSI).
+
+**Service management:** Windows Service Control Manager; auto-restart on crash; log shipping via Windows Event Log + operator's Loki forwarder.
+
+### 16b.3 macOS deployment (operator-optional)
+
+**macOS version:** 13 Ventura+ for ScreenCaptureKit; macOS 14 Sonoma+ recommended.
+
+**Pre-deployment checklist:**
+1. Apple Silicon (M1+) or Intel x86_64.
+2. Notarized .pkg installer signed via Apple Developer ID.
+3. Per-host Screen Recording + Accessibility permission grants (System Settings → Privacy & Security).
+
+**Install procedure:**
+1. .pkg installer creates launchd LaunchDaemon at `/Library/LaunchDaemons/dev.helix.agent.plist`.
+2. Per-tenant configuration via plist + per-tenant Keychain credentials.
+
+**Service management:** launchd; auto-restart on crash; log shipping via OSLogStore + operator's Loki forwarder.
+
+---
+
+## 16c. Per-Operator Host Agent Operational Posture
+
+### 16c.1 Single-tenant operator (small operator)
+
+- 1× host machine running helix-agent.
+- Per-tenant max concurrent sessions: 1-4 (operator's hardware budget).
+- Auto-update from operator's preferred mirror; canary channel reserved for staging host.
+- mDNS-only discovery (LAN-bound deployment).
+
+### 16c.2 Multi-tenant operator (mid-size operator)
+
+- 5-50 host machines clustered behind operator's load balancer.
+- Per-tenant cgroup + ResourceQuota isolation per [Phase_10 P10.T03](Phase_10_Monetization_and_Auth.md#43-p10t03--rbac--per-tenant-policy-engine).
+- Auto-update with per-region staged rollout (canary → beta → stable).
+- mDNS + DoH discovery (operator's edge network).
+
+### 16c.3 Large operator (cloud-gaming-as-a-service)
+
+- 50+ host machines per region; multi-region.
+- Per-region helix-agent fleet management via operator's Kubernetes orchestration.
+- Auto-update with blue/green deployment + automated canary metrics gate.
+- Per-region DoH + per-region private DNS-SD.
+
+### 16c.4 Per-operator-tier deployment differentiation
+
+Per [Phase_13 §4.4](Phase_13_GA.md#44-p13t04--per-tier-ga-sla) GA SLA tiers, operator's host-agent deployment topology scales with commercial commitment: Free tier may share hosts across tenants (per-tenant cgroup isolation); Pro/Enterprise tiers reserve dedicated hosts (operator-side commercial decision).
+
+---
+
 ## 17. Anti-Bluff Verification
 
 ### 17.1 Sources resolved

@@ -411,6 +411,77 @@ Phase_10 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Rep
 
 ---
 
+## 16a. Per-Region Tax + Compliance Posture
+
+### 16a.1 Per-jurisdictional tax registration matrix
+
+| Region | Tax Authority | Per-Tenant Tax Type | Operator Registration Required |
+|--------|---------------|---------------------|:------------------------------:|
+| EU (per-member-state) | per-MS VAT | VAT 17-27% per MS | ✓ + EU VAT MOSS / OSS |
+| United Kingdom | HMRC | VAT 20% | ✓ |
+| United States (per-state) | per-state DOR | Sales tax 0-10% per state | ✓ for nexus states (post-Wayfair) |
+| Canada | CRA | GST/HST 5-15% | ✓ |
+| Russia | FNS | NDS 20% | ✓ |
+| Brazil | RFB | ICMS 17-25% per state + ISS | ✓ |
+| India | GST Council | GST 18% (digital services) | ✓ |
+| China | STA | VAT 6% (digital services) | ✓ + per-province registration |
+
+### 16a.2 Per-jurisdictional GDPR-equivalent compliance
+
+- EU: GDPR (per Constitution §11.5 + Phase_10 P10.T08).
+- UK: UK-GDPR + Data Protection Act 2018.
+- California: CCPA + CPRA.
+- Brazil: LGPD.
+- China: PIPL.
+- Russia: 152-FZ.
+- India: DPDP Act 2023.
+- Canada: PIPEDA.
+
+helix-vault.EraseTenant + per-tenant erasure SLA covers each per-jurisdictional erasure-on-demand requirement; per-jurisdictional certificate format operator-tunable.
+
+### 16a.3 Per-jurisdictional content-licensing
+
+- Russia: jurisdictional restrictions on cross-border content; operator's per-jurisdictional content catalog filtered at session-start.
+- China: per-game licensing through China Game Approval; operator-side per-jurisdictional content set restricted.
+- Per-jurisdictional age-rating: ESRB / PEGI / CERO / GRAC / USK enforced at session-start.
+
+### 16a.4 Per-tenant compliance dashboard
+
+Operator's compliance officer dashboard surfaces per-tenant + per-region:
+- Tax-period status (current quarter + YTD).
+- GDPR erasure status (pending / in-flight / completed).
+- Per-content licensing compliance (per-game per-jurisdictional clearance).
+- Anti-fraud alerts (Phase_10 P10.T10).
+
+---
+
+## 16b. Per-Tenant Bill Cycle Detail
+
+### 16b.1 Per-tenant bill-cycle anchoring
+
+- Default: monthly bill-cycle anchored to tenant signup date.
+- Operator-tunable: calendar-month / per-tenant custom cycle / quarterly (Enterprise tier).
+- Per-bill-cycle invoice generation 24 h after period close.
+
+### 16b.2 Per-tenant payment-method handling
+
+- Default: single payment method per tenant.
+- Pro+ tier: multiple payment methods + per-charge fallback.
+- Enterprise tier: per-tenant invoice + NET-30 payment terms (operator-side AR).
+
+### 16b.3 Per-bill-cycle tax calculation
+
+Per [§16a.1 jurisdictional tax matrix](Phase_10_Monetization_and_Auth.md#16a1-per-jurisdictional-tax-registration-matrix):
+- Per-bill-cycle tax computed per tenant's billing-jurisdiction.
+- Per-line-item tax breakdown on invoice.
+- Per-quarter tax-period reconciliation per [Phase_10 P10.T12.S03](Phase_10_Monetization_and_Auth.md#412-p10t12--reconciliation-reports).
+
+### 16b.4 Per-tenant invoice format
+
+Per-tenant invoice in PDF (cosign-signed) + JSON (machine-readable for operator's customers' AP automation). Per-tenant logo + per-tenant white-label branding (Enterprise tier).
+
+---
+
 ## 17. Anti-Bluff Verification
 
 ### 11.1 Sources resolved

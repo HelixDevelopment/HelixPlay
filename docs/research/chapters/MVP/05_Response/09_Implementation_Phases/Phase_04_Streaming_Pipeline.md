@@ -375,6 +375,112 @@ Phase_04 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Rep
 
 ---
 
+## 16a. Per-Stream Quality Profile Catalogue
+
+### 16a.1 Per-resolution × codec quality profile
+
+| Profile | Resolution × FPS | Codec | Bitrate Floor | Bitrate Ceiling | VMAF Target |
+|---------|------------------|-------|--------------:|----------------:|------------:|
+| smoke-1080p60-h264 | 1920×1080×60 | H.264 | 6 Mbps | 12 Mbps | ≥ 92 |
+| smoke-1080p60-hevc | 1920×1080×60 | HEVC main | 4 Mbps | 9 Mbps | ≥ 93 |
+| smoke-1080p120-h264 | 1920×1080×120 | H.264 | 9 Mbps | 16 Mbps | ≥ 92 |
+| std-1440p120-hevc | 2560×1440×120 | HEVC main | 12 Mbps | 22 Mbps | ≥ 93 |
+| std-4k60-hevc | 3840×2160×60 | HEVC main10 (HDR) | 18 Mbps | 35 Mbps | ≥ 92 |
+| pro-4k120-hevc | 3840×2160×120 | HEVC main10 (HDR) | 28 Mbps | 50 Mbps | ≥ 93 |
+| pro-4k120-av1 | 3840×2160×120 | AV1 (HDR) | 22 Mbps | 40 Mbps | ≥ 93 |
+| ent-8k60-hevc | 7680×4320×60 | HEVC main10 (HDR) | 60 Mbps | 100 Mbps | ≥ 92 |
+
+### 16a.2 Per-network-quality ABR rate-step matrix
+
+helix-abr's per-network rate adjustment per [helix-abr §2](../06_Submodules/per-submodule/helix-abr.md):
+
+- **Stable network (≥ 99% packet delivery, < 5 ms jitter)**: target ceiling bitrate; minimal rate-changes.
+- **Fluctuating network (95-99% delivery, 5-20 ms jitter)**: rate adjusted ±20% per-second; floor-clamped per profile.
+- **Degraded network (< 95% delivery)**: hard rate-down to floor; FEC repair packets up to 25% redundancy.
+- **Failing network (< 90% delivery)**: session-pause + reconnect attempt with exponential backoff.
+
+### 16a.3 Per-codec acceptance gate
+
+helix-vqa's nightly batch verifies per-profile VMAF target on archived recordings (cross-reference with Phase_09). Per-profile regression triggers Prometheus alert + helix-bench bisection.
+
+---
+
+## 16b. Per-Pipeline Goroutine Topology
+
+Per [C36 §8](../05_Video_Audio/05_Go_Pipeline_Implementation.md), helix-pipeline's goroutine topology:
+
+### 16b.1 Per-stage goroutine count
+
+| Stage | Goroutine Count | Concurrency Pattern |
+|-------|----------------:|---------------------|
+| Capture | 1 | per-frame loop |
+| Encode dispatcher | 1 | per-NAL emission |
+| Encode (per-codec slice parallelism) | 4-16 | per-slice parallel |
+| Pre-transport buffer | 1 | bounded channel |
+| Transport (kernel-bypass send) | 1-4 | per-NIC queue |
+| Control plane | 1-2 | per-tenant gRPC stream |
+| Observability emitter | 1 | OTel + Prometheus |
+
+### 16b.2 Per-stage channel discipline
+
+Per [helix-pipeline §3](../06_Submodules/per-submodule/helix-pipeline.md):
+- Bounded channels per-stage with explicit drop policy.
+- Per-channel backpressure surface via `helix_pipeline_stage_drop_total` counter.
+- Per-stage circuit breaker with per-stage degraded-mode fallback.
+
+### 16b.3 Per-stage GOMAXPROCS pinning
+
+helix-rtos pins per-stage goroutine to operator-isolated CPU cores (per [Phase_07 P07.T02](Phase_07_Latency_Optimization.md#42-p07t02--cpu-isolation)):
+- Capture: CPU 4 (isolated).
+- Encode dispatcher: CPU 5 (isolated).
+- Encode workers: CPUs 6-7 + GPU.
+- Transport: CPU 4 (shared with capture for cache locality).
+
+### 16b.4 Per-tenant goroutine lifecycle
+
+Per-tenant session has dedicated goroutine pool; session.End triggers graceful goroutine shutdown via context cancellation. Per-tenant goroutine leak detection via goleak (per [T02 §3](../07_Testing/02_Unit.md)).
+
+---
+
+## 16c. Per-Pipeline Failure-Mode Catalogue
+
+Per [helix-pipeline §9.3](../06_Submodules/per-submodule/helix-pipeline.md):
+
+### 16c.1 Per-stage failure modes
+
+- **Capture stage failure**: GPU driver crash → host-side fallback (CPU capture); session-level reconnect attempt.
+- **Encode stage failure**: NVENC saturation → ABR rate-down + per-codec fallback (HEVC → H.264).
+- **Transport stage failure**: NIC saturation → kernel-bypass disable; sendmsg fallback.
+- **Client decoder failure**: codec capability mismatch → per-client renegotiation.
+
+### 16c.2 Per-stage chaos-injection (Phase_07 + Phase_11)
+
+helix-pipeline's per-stage failure-mode catalogue is the chaos-injection target list per [T07 §2](../07_Testing/07_Chaos.md). Per-stage chaos scenarios:
+- Capture-stage: simulate display hot-plug.
+- Encode-stage: simulate GPU saturation.
+- Transport-stage: simulate NIC packet-loss spike via Toxiproxy.
+
+### 16c.3 Per-stage degraded-mode fallback
+
+Each stage has a documented degraded-mode operating envelope; per-stage degraded-mode auto-activated on failure-mode detection. Operator's runbook §9 documents per-stage degraded-mode + recovery procedure.
+
+---
+
+## 16d. Per-Pipeline Lifecycle Phase Acceptance
+
+Per Phase_04 P04.T11 + P04.T12:
+- Pipeline.New: builds goroutine topology; verifies per-stage capacity reservation.
+- Pipeline.Start: brings up capture → encoder → transport in dependency order.
+- Pipeline.Pause: graceful checkpoint; per-stage state preserved.
+- Pipeline.Resume: re-anchored from checkpoint; first-frame within 2 s p99.
+- Pipeline.Stop: graceful shutdown within 1 s p99.
+
+### 16d.1 Per-lifecycle Prometheus emission
+
+Each lifecycle transition emits `helix_pipeline_lifecycle_total{op,result}` counter; per-state duration histogram surfaces transition latency.
+
+---
+
 ## 17. Anti-Bluff Verification
 
 ### 11.1 Sources resolved

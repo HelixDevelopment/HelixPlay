@@ -372,6 +372,122 @@ Phase_05 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Rep
 
 ---
 
+## 16a. Per-Client Build + Distribution Detail
+
+### 16a.1 Wails desktop client distribution
+
+**Build matrix:** Linux (x86_64 + arm64 .AppImage + .deb + .rpm), macOS (x86_64 + arm64 .dmg + Mac App Store .pkg), Windows (x86_64 .msi + Microsoft Store .msix).
+
+**Code-signing per platform:**
+- Linux: cosign-keyless via Sigstore + per-distro package signing (apt-key for .deb, GPG for .rpm).
+- macOS: Apple Developer ID + notarization via `notarytool`; per-release notarization + stapling.
+- Windows: Microsoft Authenticode via operator's EV code-signing certificate; Microsoft Store-bound builds via Partner Center.
+
+**Distribution channels:**
+- Self-hosted operator mirror (canonical primary).
+- GitHub Releases (alternative; per-mirror parity audit).
+- Operator's commercial-tier customer-portal direct download.
+- Optional: Snap Store / Flathub for Linux; Homebrew Cask for macOS; winget for Windows.
+
+**Auto-update infrastructure:** per-channel manifest (stable / beta / canary) + cosign-verified delta-update from prior version + rollback support.
+
+### 16a.2 Compose-for-TV client distribution
+
+**Build matrix:** APK + AAB (Android App Bundle) for Play Store; APK for Amazon Appstore; APK for Huawei AppGallery (operator-optional per-jurisdiction).
+
+**Code-signing:**
+- Play Store: Play App Signing (operator's upload key + Google's signing key).
+- Amazon Appstore: operator-managed signing key.
+
+**Distribution channels:**
+- Google Play Store (canonical primary; covers Google TV + most Android-TV devices).
+- Amazon Appstore (covers Fire TV).
+- Huawei AppGallery (covers Huawei smart TVs; operator's optional per-jurisdiction).
+- Side-loading for operator-LAN-only deployments (Russian-jurisdiction path).
+
+### 16a.3 Steam Deck client distribution
+
+**Build:** Native arm64 SteamOS package + Steam release bundle.
+
+**Distribution channels:**
+- Steam (canonical; per Valve's release process).
+- Direct .flatpak from operator's mirror (alternative for desktop-mode Steam Deck users).
+
+**Code-signing:** Steam-side signing process; cosign-verifiable digest published in operator's manifest.
+
+### 16a.4 Per-client capability matrix
+
+| Capability | Wails | Compose-for-TV | Steam Deck |
+|------------|:-----:|:--------------:|:----------:|
+| H.264 decode | ✓ | ✓ | ✓ |
+| HEVC decode | ✓ | ✓ | ✓ |
+| AV1 decode | ✓ (Vulkan) | ✓ (per-device) | ✓ |
+| HDR10 | ✓ | ✓ | ✓ |
+| HDR10+ | ✓ (per-display) | ✓ (per-device) | ✓ (dock-mode) |
+| Dolby Vision | ✓ (per-display) | ✓ (per-device) | partial |
+| Atmos 7.1.4 | ✓ (eARC) | ✓ (per-receiver) | ✓ (dock-mode) |
+| Reflex echo | ✓ | partial | ✓ |
+| Vulkan tone-mapping | ✓ | ✓ | ✓ |
+
+---
+
+## 16b. Per-Client Telemetry + Crash-Reporting Pipeline
+
+### 16b.1 Telemetry SDK selection
+
+- **Wails desktop:** OpenTelemetry Go SDK + Sentry Go SDK + per-platform crash-reporting (breakpad on Linux/Windows; PLCrashReporter on macOS).
+- **Compose-for-TV:** OpenTelemetry Android SDK + Firebase Crashlytics (operator-side per-tenant project) OR Sentry Android SDK.
+- **Steam Deck:** OpenTelemetry Go SDK + Sentry Go SDK; Steam-side crash-reporting opt-in.
+
+### 16b.2 Per-event telemetry surface
+
+| Event | Wails | Compose-for-TV | Steam Deck |
+|-------|:-----:|:--------------:|:----------:|
+| Session start / end | ✓ | ✓ | ✓ |
+| Codec negotiation | ✓ | ✓ | ✓ |
+| Reconnect event | ✓ | ✓ | ✓ |
+| Crash | ✓ | ✓ | ✓ |
+| Per-frame VMAF score | ✓ | ✓ | ✓ |
+| Per-input Reflex echo | ✓ | partial | ✓ |
+| Auto-update event | ✓ | ✓ | ✓ |
+
+### 16b.3 Per-tenant crash-reporting privacy
+
+Per Phase_10 GDPR + per-tenant data classification:
+- Per-tenant crash report scoped to tenant project (no cross-tenant data).
+- PII redaction at SDK layer (no IP / username / payment-info in stack traces).
+- Per-tenant retention per operator's commercial agreement (default: 90 days; Enterprise-tier: 365 days).
+
+---
+
+## 16c. Per-Region Client Distribution Strategy
+
+### 16c.1 Per-jurisdictional client mirror
+
+Operator-side per-region client mirror selection mirrors the four-mirror Git topology:
+- **EU + North America**: Apple App Store + Microsoft Store + Google Play + GitHub Releases.
+- **Russia**: gitflic + gitverse mirrors + operator's self-hosted DoH-discoverable mirror.
+- **China**: Huawei AppGallery (Compose-for-TV) + operator's self-hosted mirror; no App Store / Play Store.
+- **India**: Google Play + Apple App Store + operator's self-hosted mirror.
+
+### 16c.2 Per-version channel distribution
+
+Three release channels per platform: stable / beta / canary. Stable: 95% of operator's customer base; beta: 5% opt-in; canary: 0.5% operator-internal + invited beta customers.
+
+Stable: 4-week release cadence + cosign-verified delta updates. Beta: weekly. Canary: nightly (operator-internal only, never promoted to operator's external customers).
+
+### 16c.3 Per-tier client capability gating
+
+Per-tier feature gating (per Phase_13 §4.4 GA SLA tiers):
+- **Free tier**: H.264 decode + SDR + stereo audio.
+- **Standard tier**: HEVC decode + HDR10 + 5.1 audio.
+- **Pro tier**: AV1 decode + HDR10+ + Atmos 7.1.4 + DV.
+- **Enterprise tier**: all Pro features + per-tenant custom branding (Phase_06 [white-label](../03_Architecture/10_WhiteLabel_and_Theming.md)).
+
+Per-tier capability gating enforced at session-start; client UX surfaces per-tier upgrade prompt on capability denial.
+
+---
+
 ## 17. Anti-Bluff Verification
 
 ### 11.1 Sources resolved

@@ -388,6 +388,109 @@ Phase_12 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Rep
 
 ---
 
+## 16a. Per-Beta-Customer Onboarding Detail
+
+### 16a.1 Per-customer profile
+
+Each beta customer carries a per-customer profile in operator's CRM:
+- Per-customer SLA tier (Pro / Enterprise typical for beta).
+- Per-customer success-criteria document (signed by both parties).
+- Per-customer dedicated support channel (Slack Connect / Teams).
+- Per-customer monthly review meeting cadence + agenda template.
+
+### 16a.2 Per-customer 30-60-90 day milestones
+
+- **Day 0**: kickoff meeting + tenant provisioning + first session smoke.
+- **Day 30**: first invoice + dispute response cycle (Phase_10 P10.T14) + customer's first NPS survey.
+- **Day 60**: per-customer feedback ticket triage + per-customer feature-request prioritisation.
+- **Day 90**: per-customer health-score review + beta-to-GA migration discussion.
+
+### 16a.3 Per-customer feature gating
+
+Beta customers may opt into Phase_13 GA features ahead of GA via operator-managed feature flags. Per-feature opt-in tracked + observed; per-feature stability score informs GA promotion.
+
+### 16a.4 Per-customer SLA monitoring
+
+Per [§12 SLI/SLO definitions](Phase_12_Beta_Launch.md#12-per-phase-sli--slo-definitions), per-customer SLA dashboard surfaces:
+- Per-tier latency floor compliance.
+- Per-tier availability compliance.
+- Per-customer support ticket SLA adherence.
+- Per-customer feedback velocity (tickets / week).
+
+Per-customer SLA breach triggers automatic escalation per Phase_12 P12.T03 alert routing.
+
+### 16a.5 Per-customer beta exit interview
+
+Before beta-to-GA migration, operator's customer-success team conducts per-customer exit interview covering:
+- What worked.
+- What didn't.
+- Per-feature satisfaction.
+- Net Promoter Score.
+- Per-customer reference willingness (operator-side marketing).
+
+---
+
+## 16b. Beta-to-GA Migration Detail
+
+### 16b.1 Beta-to-GA cut-over plan
+
+Per Phase_12 P12.T15 + Phase_13 P13.T02:
+- T-30 days: operator's commercial team announces GA date to beta customers.
+- T-14 days: per-beta-customer migration meeting + per-customer SLA tier assignment.
+- T-7 days: per-beta-customer commercial agreement migration (beta tier → operator's GA tier).
+- T-0: GA launch; beta customers continue with no service interruption + tier transition.
+
+### 16b.2 Per-beta-customer pricing transition
+
+- Beta customers receive 6-month grandfathered pricing at beta-tier rate.
+- After 6 months: per-beta-customer transitions to GA-tier pricing.
+- Operator's commercial team negotiates per-Enterprise-tier custom contracts.
+
+### 16b.3 Beta-feedback-driven GA roadmap
+
+Per beta customer success metrics (Phase_12 P12.T11):
+- Top 10 feature requests scheduled in operator's post-GA roadmap.
+- Per-customer NPS-driven prioritisation.
+- Per-quarter operator review cadence (Phase_13 P13.T09) absorbs beta-feedback.
+
+### 16b.4 Beta-customer testimonial pipeline
+
+Operator's marketing team works with willing beta customers on:
+- Per-customer case study (operator-published).
+- Per-customer reference-customer programme.
+- Per-customer logo on operator's marketing website (operator-side commercial agreement).
+
+---
+
+## 16c. Beta Window Closure Criteria
+
+### 16c.1 Quantitative beta-success gates
+
+Before Phase_12 → Phase_13 GA promotion:
+- ≥ 30 consecutive days of green Challenges + Smoke + Stress + Chaos + Security suites.
+- ≥ 99.9% per-customer SLA adherence over rolling 30-day window.
+- All CRITICAL pentest findings remediated + re-tested green.
+- ≥ 3 beta customers active for ≥ 30 days.
+- Per-customer NPS aggregate ≥ 30.
+- Per-region capacity headroom verified ≥ 30%.
+
+### 16c.2 Qualitative beta-success signals
+
+- Per-beta-customer reference-willingness signed.
+- Operator's customer-success team confidence signal.
+- Operator's commercial team GA-launch readiness.
+- Operator's CISO security posture sign-off.
+- Operator's CFO commercial-model validation.
+
+### 16c.3 Beta-stage extension criteria
+
+If quantitative gates not met at planned beta-end, operator's CTO + commercial team decide:
+- Extend beta by 4-week increments.
+- Per-blocking-issue remediation tracked.
+- Per-beta-customer communication on extension.
+
+---
+
 ## 17. Anti-Bluff Verification
 
 ### 11.1 Sources resolved

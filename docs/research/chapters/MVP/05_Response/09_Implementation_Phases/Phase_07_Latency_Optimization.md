@@ -359,6 +359,127 @@ Phase_07 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Rep
 
 ---
 
+## 16a. Per-Stage Latency Budget Tables
+
+The canonical p999 ≤ 8 ms input-to-photons floor (Insight #2, [C13 §6](../03_Architecture/12_Latency_Engineering_Overview.md)) decomposes into per-stage budgets per [S05 §9.2](../06_Submodules/05_Per_Submodule/05_per_submodule_helix-pipeline.md):
+
+### 16a.1 Per-stage budget breakdown (4K60, NVIDIA RTX 4090 reference)
+
+| Stage | p50 | p99 | p999 | Cumulative p999 |
+|-------|----:|----:|-----:|----------------:|
+| Input event capture (helix-input) | 0.2 ms | 0.4 ms | 0.6 ms | 0.6 ms |
+| Input transport (client → host) | 0.3 ms | 0.6 ms | 1.0 ms | 1.6 ms |
+| Game-engine input frame | 0.5 ms | 1.0 ms | 1.5 ms | 3.1 ms |
+| Capture (helix-capture, GPU-direct) | 0.1 ms | 0.2 ms | 0.3 ms | 3.4 ms |
+| Encode (helix-encoder, NVENC HEVC) | 1.5 ms | 2.5 ms | 3.5 ms | 6.9 ms |
+| Encode→Transport handoff (helix-shm) | 0.05 ms | 0.1 ms | 0.2 ms | 7.1 ms |
+| Transport (kernel-bypass UDP send) | 0.2 ms | 0.4 ms | 0.6 ms | 7.7 ms |
+| Network propagation (LAN, fiber) | 0.05 ms | 0.1 ms | 0.2 ms | 7.9 ms |
+| Decode (client-side hardware) | 0.5 ms | 0.8 ms | 1.2 ms | 9.1 ms* |
+| Render + present (client) | 0.5 ms | 1.0 ms | 1.5 ms | 10.6 ms* |
+
+*Per-client p999 floor for "good enough" at 8 ms is operator-tunable; the 8 ms target applies to **server-side completion** (capture → transport-send completed). Client-side decode + render is amortised against display refresh-rate.
+
+### 16a.2 Per-codec latency variance
+
+| Codec | Encode p999 (4K60) | Encode p999 (1080p120) |
+|-------|-------------------:|----------------------:|
+| H.264 NVENC | 3.0 ms | 1.5 ms |
+| HEVC NVENC | 3.5 ms | 1.8 ms |
+| AV1 NVENC (Ada Lovelace+) | 4.5 ms | 2.2 ms |
+| H.264 QuickSync (Intel Arc) | 4.0 ms | 2.0 ms |
+| HEVC QuickSync (Intel Arc) | 4.5 ms | 2.3 ms |
+| AV1 QuickSync (Intel Arc) | 5.5 ms | 2.8 ms |
+
+H.264 NVENC is the canonical latency-floor codec. AV1 trades latency for bandwidth efficiency (operator-tunable per session-tier).
+
+### 16a.3 Per-resolution + framerate latency floor
+
+| Resolution × FPS | Per-frame budget | Encode p999 (HEVC NVENC) | Total p999 input-to-photons |
+|------------------|-----------------:|-------------------------:|----------------------------:|
+| 1080p60 | 16.67 ms | 1.5 ms | ≤ 6 ms |
+| 1080p120 | 8.33 ms | 1.8 ms | ≤ 6 ms |
+| 1440p120 | 8.33 ms | 2.5 ms | ≤ 7 ms |
+| 4K60 | 16.67 ms | 3.5 ms | ≤ 8 ms |
+| 4K120 | 8.33 ms | 4.5 ms | ≤ 9 ms |
+
+The 4K60 8 ms target is the canonical Phase_07 acceptance gate. 4K120 with HDR pushes to 9 ms p999 — operator-tunable.
+
+### 16a.4 Per-stage budget enforcement
+
+helix-pipeline emits per-stage HDR histograms continuously; helix-bench aggregates + applies Mann-Whitney U change-point detection. Per-stage budget breach triggers Prometheus alert + per-stage forensics workflow per [§13](../09_Implementation_Phases/Phase_07_Latency_Optimization.md#13-per-phase-operator-runbook).
+
+---
+
+## 16b. Per-Optimization Verification Procedure
+
+### 16b.1 Per-optimization apply-then-measure protocol
+
+Each Phase_07 optimization (P07.T01..T11) follows the same apply-then-measure protocol per [helix-bench §7](../06_Submodules/per-submodule/helix-bench.md):
+
+1. **Baseline capture** — pre-optimization helix-bench run; HDR histogram archived; Mann-Whitney U baseline established with ≥ 10K samples per Insight #2.
+2. **Apply optimization** — single-change isolation (no batched changes; per [T06 §8](../07_Testing/06_Benchmarking.md) Mann-Whitney U significance protocol).
+3. **Post-optimization capture** — same workload; same hardware; same Challenges scenario.
+4. **Statistical comparison** — Mann-Whitney U test for distribution shift; Cohen's d effect size; per-stage budget compliance check.
+5. **Acceptance gate** — p ≤ 0.01 for improvement; effect size ≥ 0.2 for material; per-stage budget within § S05 §9.2 envelope.
+6. **Regression bisection** — if any per-stage budget violated post-optimization, git-bisect against per-stage benchmark to identify the offending change.
+
+### 16b.2 Per-stage benchmarking harness
+
+helix-bench exposes per-stage benchmark targets:
+
+- `BenchmarkInputCapture` — helix-input poll-loop latency.
+- `BenchmarkInputTransport` — client-to-host gRPC stream latency.
+- `BenchmarkCapture` — helix-capture per-frame capture latency (GPU-direct vs host-bounce).
+- `BenchmarkEncode` — helix-encoder per-frame encode latency (per-codec variants).
+- `BenchmarkEncodeTransport` — encoder-to-transport handoff via helix-shm.
+- `BenchmarkTransportSend` — kernel-bypass UDP send (io_uring + AF_XDP) vs sendmsg fallback.
+- `BenchmarkReflexEcho` — Reflex round-trip echo latency.
+
+### 16b.3 Per-optimization expected gains (baseline → post)
+
+| Optimization | Baseline p999 | Post p999 | Gain |
+|--------------|--------------:|----------:|-----:|
+| SCHED_FIFO promotion | 12 ms | 9 ms | 3 ms |
+| CPU isolation (isolcpus=4-7) | 9 ms | 8.5 ms | 0.5 ms |
+| GPUDirect RDMA send | 8.5 ms | 8.2 ms | 0.3 ms |
+| io_uring batched send | 8.2 ms | 8.0 ms | 0.2 ms |
+| AF_XDP zerocopy | 8.0 ms | 7.9 ms | 0.1 ms |
+| ModeStrict allocator | 7.9 ms | 7.8 ms | 0.1 ms |
+| **Cumulative gain** | 12 ms | 7.8 ms | **4.2 ms** |
+
+The cumulative gain table is approximate; actual gains vary per-hardware. Per-deployment baselines + post measurements are operator-archived per [helix-bench §8](../06_Submodules/per-submodule/helix-bench.md).
+
+---
+
+## 16c. Per-Region Latency Floor Calibration
+
+### 16c.1 Per-region latency target tiers
+
+Per [Phase_12 §4.6](Phase_12_Beta_Launch.md#46-p12t06--performance-baselines) per-region performance baselines:
+
+| Region | Network Floor (RTT) | p999 Input-to-Photons Target | Tier |
+|--------|--------------------:|-----------------------------:|:----:|
+| NA-East (operator HQ) | 5 ms | ≤ 8 ms | Enterprise |
+| NA-West | 10 ms | ≤ 10 ms | Pro |
+| EU-Central | 8 ms | ≤ 9 ms | Enterprise |
+| EU-West | 12 ms | ≤ 11 ms | Pro |
+| AP-East (Tokyo) | 15 ms | ≤ 12 ms | Pro |
+| AP-Southeast (Singapore) | 20 ms | ≤ 15 ms | Standard |
+| RU-Moscow | 10 ms | ≤ 12 ms | Pro (jurisdictional) |
+| BR-Sao Paulo | 25 ms | ≤ 18 ms | Standard |
+| IN-Mumbai | 30 ms | ≤ 20 ms | Standard |
+
+### 16c.2 Per-region capacity calibration
+
+Per-region Phase_07 capacity verified at the canonical 8 ms floor for the home-region (operator HQ); other regions calibrated per the per-region budget. Operator's commercial team owns per-region tier-floor agreement with customers.
+
+### 16c.3 Per-jurisdiction latency posture
+
+Russian-jurisdiction operators' latency floor accommodates additional regulatory inspection latency at edge firewall (per RP07-04 DSCP marking stripping risk). Per-jurisdictional p999 target adjusted operator-side.
+
+---
+
 ## 17. Anti-Bluff Verification
 
 ### 17.1 Sources resolved

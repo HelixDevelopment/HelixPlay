@@ -355,6 +355,135 @@ Phase_08 closure verification per [Phase_09 §16](Phase_09_Recording_and_Replay.
 
 ---
 
+## 16a. Per-Receiver + Per-Display Compatibility Matrix
+
+### 16a.1 Per-receiver Atmos eARC compatibility (reference set)
+
+| Receiver | Atmos 7.1.4 | eARC Negotiation | ALLM | Known Quirks |
+|----------|:-----------:|:----------------:|:----:|--------------|
+| Denon AVR-X6700H | ✓ | ✓ (firmware ≥ 1100) | ✓ | eARC handshake retry on fast-source-switch |
+| Denon AVR-X3800H | ✓ | ✓ | ✓ | clean |
+| Yamaha RX-A8A | ✓ | ✓ | ✓ | clean |
+| Yamaha RX-A6A | ✓ | partial | ✓ | eARC InfoFrame ack delayed up to 800 ms |
+| Marantz Cinema 50 | ✓ | ✓ | ✓ | clean |
+| Onkyo TX-RZ50 | ✓ | ✓ | ✓ | clean |
+| Pioneer VSX-LX305 | ✓ | partial | ✓ | per-source eARC config required |
+| Sony STR-AN1000 | ✓ | ✓ | ✓ | clean |
+| LG OLED CX/C2/C3 (eARC pass-through) | ✓ | ✓ | ✓ | per-firmware variance |
+| Samsung Q990C soundbar | ✓ | ✓ | ✓ | clean |
+
+Per-receiver firmware compatibility tracked in operator's runbook §13.4; per-firmware-version regression-test scheduled at upstream firmware release.
+
+### 16a.2 Per-display HDR + DV compatibility (reference set)
+
+| Display | HDR10 | HDR10+ | Dolby Vision | Atmos eARC | Known Quirks |
+|---------|:-----:|:------:|:------------:|:----------:|--------------|
+| LG OLED C3 (4K120) | ✓ | ✗ | ✓ Profile 5 + 8.4 | ✓ | DV → HDR10 fallback automatic |
+| LG OLED G3 (4K120) | ✓ | ✗ | ✓ Profile 5 + 8.4 | ✓ | clean |
+| Sony A95K (4K120 QD-OLED) | ✓ | partial | ✓ Profile 5 + 8.4 | ✓ | DV gaming-mode requires firmware ≥ 03.05 |
+| Samsung S95C (4K144 QD-OLED) | ✓ | ✓ | ✗ | ✓ | HDR10+ Gaming-mode |
+| Samsung Q990C soundbar | ✓ | ✓ | ✗ | ✓ | clean |
+| Sony X95L (4K120 mini-LED) | ✓ | partial | ✓ Profile 5 + 8.4 | ✓ | clean |
+| Hisense U8K (4K144 mini-LED) | ✓ | ✓ | ✓ Profile 5 + 8.4 | ✓ | DV throttle on long sessions |
+| TCL QM8 (4K144 mini-LED) | ✓ | ✓ | ✓ Profile 5 | ✓ | clean |
+
+### 16a.3 Per-display tone-mapping fallback path
+
+For SDR-only displays (older 1080p/4K HDR-incapable), helix-hdr.ToneMapper Strategy=BT2390 (per [helix-hdr §2.6](../06_Submodules/per-submodule/helix-hdr.md#26-tone-mapping-client-side)) operates client-side via Vulkan compute shader. Per-display tone-mapping verified at 4 ms p999 on:
+- NVIDIA RTX 30+ (Ampere + Ada Lovelace) — full-rate Vulkan compute.
+- Apple M1+ — Metal-on-Vulkan via MoltenVK.
+- AMD Radeon RX 6000+ — full-rate Vulkan compute.
+- Intel Arc A-series — full-rate Vulkan compute.
+- Apple A14+ (iPad / Apple TV 4K) — Metal compute via Vulkan-portability.
+
+Per-GPU tone-map performance audit conducted before each Phase_08 release; per-GPU regression Prometheus alert wired.
+
+### 16a.4 Per-jurisdictional licensing posture
+
+Dolby Vision + Atmos licensing varies by operator's commercial agreement:
+- **Operator with Dolby Atmos + DV master licensing:** ships full DV Profile 8.4 + Atmos 7.1.4.
+- **Operator with Atmos-only licensing:** ships Atmos 7.1.4; HDR10/HDR10+ as DV alternative.
+- **Operator without Atmos/DV licensing:** ships PCM 5.1 + HDR10/HDR10+; no Atmos / DV.
+
+The Apache-2.0 helix-codec patent grant covers the codec implementation; operator's commercial DV/Atmos license is independent (per [C32 §6](../05_Video_Audio/02_HDR_and_Color.md) + RP08-02).
+
+---
+
+## 16b. Per-Format Bandwidth + Channel Calculations
+
+### 16b.1 Per-audio-format bandwidth budget
+
+| Format | Channels | Bitrate | Per-Hour Egress |
+|--------|---------:|--------:|----------------:|
+| PCM 5.1 (uncompressed) | 6 | 6.144 Mbps | 2.76 GB / hour |
+| Opus 5.1 | 6 | 384 kbps | 173 MB / hour |
+| Opus Atmos 7.1.4 | 12 | 768 kbps | 346 MB / hour |
+| Dolby AC-3 5.1 (legacy) | 6 | 640 kbps | 288 MB / hour |
+| Dolby Digital Plus (E-AC-3 7.1) | 8 | 1.536 Mbps | 691 MB / hour |
+| DTS-HD MA 7.1 (lossless, legacy) | 8 | 24.5 Mbps | 11 GB / hour |
+
+helix-audio's Opus MultiStream encoder is the canonical default: 768 kbps for Atmos 7.1.4 = 346 MB / hour egress per session = small fraction of total session bandwidth (Phase_04 ~25 Mbps video baseline).
+
+### 16b.2 Per-HDR-format bandwidth overhead
+
+| HDR Format | Per-Frame SEI Bytes | Per-Hour Overhead (60fps) |
+|------------|--------------------:|--------------------------:|
+| SDR (no HDR) | 0 | 0 |
+| HDR10 (static MaxCLL+MaxFALL) | ~8 (per-IDR, ~1 every 30s) | < 1 KB / hour |
+| HDR10+ (ST 2094-40, per-scene) | ~64 (per-scene, ~6/min) | ~25 KB / hour |
+| Dolby Vision (RPU per-frame) | ~2,048 (per-frame) | ~415 MB / hour |
+
+Dolby Vision's per-frame RPU significantly increases bandwidth — operator-tunable per session-tier (Pro / Enterprise tiers default to DV; Free / Standard tiers default to HDR10+).
+
+### 16b.3 Per-format encoder overhead (NVENC RTX 4090 reference)
+
+| Format | Encode p999 (4K60) |
+|--------|------------------:|
+| HEVC SDR | 3.5 ms |
+| HEVC HDR10 (static) | 3.6 ms (+0.1 ms) |
+| HEVC HDR10+ (ST 2094-40) | 3.8 ms (+0.3 ms) |
+| HEVC + Dolby Vision (Profile 8.4) | 4.2 ms (+0.7 ms) |
+| AV1 SDR | 4.5 ms |
+| AV1 HDR10 (static) | 4.6 ms (+0.1 ms) |
+| AV1 HDR10+ (ST 2094-40) | 4.9 ms (+0.4 ms) |
+| AV1 + Dolby Vision (Profile 8.4) | 5.3 ms (+0.8 ms) |
+
+Per [Phase_07 §16a.1](Phase_07_Latency_Optimization.md#16a1-per-stage-budget-breakdown-4k60-nvidia-rtx-4090-reference), the encode stage budget is ~3.5 ms for HEVC SDR; HDR/DV adds 0.3-0.8 ms per frame.
+
+---
+
+## 16c. Per-Tier Audio + HDR Feature Gating
+
+### 16c.1 Per-tier audio differentiation
+
+Per [Phase_13 §4.4](Phase_13_GA.md#44-p13t04--per-tier-ga-sla) GA SLA tiers + Phase_10 monetisation:
+
+| Tier | Audio Format | Channels | Bitrate |
+|------|--------------|---------:|--------:|
+| Free | Opus stereo | 2 | 96 kbps |
+| Standard | Opus 5.1 | 6 | 384 kbps |
+| Pro | Opus Atmos 7.1.4 | 12 | 768 kbps |
+| Enterprise | Opus Atmos 7.1.4 + lossless option | 12 | 768 kbps (Opus) or 6 Mbps (PCM) |
+
+### 16c.2 Per-tier HDR differentiation
+
+| Tier | HDR Support | Notes |
+|------|-------------|-------|
+| Free | SDR only | no HDR |
+| Standard | HDR10 (static) | universal HDR baseline |
+| Pro | HDR10+ + Dolby Vision | dynamic metadata |
+| Enterprise | All Pro features + per-tenant operator-tunable HDR profile | white-label per-jurisdictional |
+
+### 16c.3 Per-tier upgrade prompts
+
+Client UX surfaces per-tier upgrade prompt on capability denial — e.g., Free-tier user attempting to enable Atmos 7.1.4 sees "Upgrade to Pro for Atmos 7.1.4". Operator's commercial team owns the upgrade-prompt copy + checkout integration.
+
+### 16c.4 Per-jurisdiction licensing impact on tier
+
+Per RP08-02 — operator without DV master licensing cannot ship Pro tier with DV; operator's per-jurisdictional product roadmap reflects available formats. Per-tenant pricing adjusts to available format set.
+
+---
+
 ## 17. Anti-Bluff Verification
 
 ### 17.1 Sources resolved

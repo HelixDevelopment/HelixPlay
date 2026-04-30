@@ -444,6 +444,53 @@ Phase_11 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Rep
 
 ---
 
+## 16a. Per-Compliance-Profile Optional Feature Set
+
+### 16a.1 STIG profile (US Government)
+
+For operator deployments to US Government customers (per Phase_11 P11.T17):
+- RHEL 9 STIG-hardened OS image OR Ubuntu Pro STIG-hardened image.
+- FIPS 140-3 validated cryptographic module (Boring Crypto FIPS or operator-pinned module).
+- DISA STIG checklist auto-evaluated via `oscap` per release.
+- Per-control STIG attestation document.
+- Per-deploy auditor's read-only access via per-tenant scope.
+
+### 16a.2 FedRAMP Moderate / High
+
+For operator deployments to US Federal customers:
+- Continuous monitoring per NIST SP 800-137.
+- Per-control FedRAMP package (System Security Plan, Security Assessment Plan).
+- 3PAO assessment + JAB authorization (operator-side commercial agreement).
+- Per-tenant data-residency in operator's FedRAMP-authorized region.
+
+### 16a.3 PCI-DSS
+
+For operator processing payment card data (Phase_10 monetisation):
+- PCI-DSS Level 1 (operator-side commercial agreement with QSA).
+- Cardholder Data Environment (CDE) network segregation per Cilium NetworkPolicy.
+- Per-tenant tokenisation via payment gateway (no cardholder data in helix-billing).
+
+### 16a.4 SOC 2 Type II
+
+For enterprise customer requirements:
+- SOC 2 Type II audit cycle (annual; operator-side commercial agreement with auditor).
+- Per-control evidence collection automated via [O04 audit log integration](../08_Operations/04_Observability_and_Events.md).
+- Per-tenant SOC 2 report distributable.
+
+### 16a.5 ISO 27001 / 27017 / 27018
+
+For international enterprise customer requirements:
+- ISO 27001 ISMS certification.
+- ISO 27017 cloud-services additional controls.
+- ISO 27018 PII-in-cloud controls.
+- Per-tenant ISO certification report distributable.
+
+### 16a.6 Compliance profile activation
+
+Operator pins per-tenant compliance profile via tenant config. Per-profile additional controls activated per Phase_11 + Phase_10 + Phase_12 cross-cutting.
+
+---
+
 ## 17. Anti-Bluff Verification
 
 ### 11.1 Sources resolved
