@@ -353,6 +353,50 @@ Operator signoff per Constitution §16 + the §6 exit criteria checklist.
 
 ---
 
+## 13a. Per-Phase Risk Mitigation Detail
+
+### 13a.1 Cosign keyless infrastructure outage
+
+**Detection:** Sigstore-Fulcio short-lived cert issuance fails; per-build cosign-sign step blocks.
+
+**Mitigation:** Operator's optional self-managed key fallback for air-gapped + Sigstore-outage scenarios; key-rotation runbook ready.
+
+**Remediation:** Operator's runbook §3.5 — Sigstore status check + temporary key-based fallback activation; Sigstore status page monitored.
+
+### 13a.2 SLSA L3 attestation gap
+
+**Detection:** Per-release SBOM shows missing SLSA provenance fields.
+
+**Mitigation:** Per-build environment isolation per [O01 §10](../08_Operations/01_Container_CI_CD.md); per-release attestation verifier integrated into CI.
+
+**Remediation:** Operator's runbook §4.4 — per-release re-attest procedure; offending release tagged + cosign-re-signed.
+
+### 13a.3 Multi-arch build divergence
+
+**Detection:** amd64 + arm64 image digests differ in non-binary content.
+
+**Mitigation:** Reproducible-build flags (-trimpath -ldflags '-buildid='); per-arch build-environment frozen.
+
+**Remediation:** Operator's runbook §5.7 — per-arch build forensics; common causes: timestamp embed, per-arch dependency resolution.
+
+### 13a.4 GOCACHEPROG remote cache poisoning
+
+**Detection:** Per-PR build produces incorrect output despite cache-hit.
+
+**Mitigation:** Per-cache-entry content-addressed hash + cosign-signed; cache-validation gate at fetch.
+
+**Remediation:** Operator's runbook §6.3 — per-cache-entry purge + per-PR cache-bypass rebuild; cache-poisoning post-incident review.
+
+### 13a.5 Pinned digest drift
+
+**Detection:** `helix_pinned_digest_drift_total` > 0.
+
+**Mitigation:** Per-base-image digest pinned + verified at build; Renovate bot opens PR per upstream release.
+
+**Remediation:** Operator's runbook §7.2 — per-base-image upgrade + downstream rebuild cascade.
+
+---
+
 ## 14. Implementation Considerations
 
 ### 14.1 Cosign keyless vs key-based

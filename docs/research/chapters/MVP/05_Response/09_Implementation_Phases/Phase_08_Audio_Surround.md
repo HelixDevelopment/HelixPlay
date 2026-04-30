@@ -270,6 +270,50 @@ Constitution §16 + §6 exit criteria.
 
 ---
 
+## 13a. Per-Phase Risk Mitigation Detail
+
+### 13a.1 RP08-01 — HDMI 2.1 eARC InfoFrame transmission failed
+
+**Detection:** `helix_earc_negotiation_total{success="false"}` rate > 1% over 24-hour window.
+
+**Mitigation:** Per-receiver-model quirks register populated; per-receiver firmware compatibility list maintained.
+
+**Remediation:** Operator's runbook §2.2 — eARC negotiation diagnostic; common causes: HDMI cable < HDMI 2.1 certified, receiver firmware out-of-date, ARC vs eARC port mis-selection.
+
+### 13a.2 RP08-02 — Dolby Vision encoder licensing
+
+**Detection:** Operator's commercial agreement audit flag.
+
+**Mitigation:** Apache-2.0 helix-codec patent grant; operator-side DV authoring through licensed third-party (per [C32 §6](../05_Video_Audio/02_HDR_and_Color.md)).
+
+**Remediation:** Operator's runbook §3.4 — per-jurisdictional DV licensee selection; commercial-team decision-point on DV vs HDR10+ as primary HDR path.
+
+### 13a.3 RP08-03 — Atmos channel-map mismatch (7.1.4 vs 7.1)
+
+**Detection:** Encoder init returns ErrChannelMapMismatch.
+
+**Mitigation:** helix-audio validates channel-map at encoder init per [helix-audio §9.1](../06_Submodules/per-submodule/helix-audio.md#91-configuration-knobs); verifiable smoke probe at session start.
+
+**Remediation:** Operator's runbook §4.3 — channel-map reconfiguration procedure; per-content-type fallback (e.g., 7.1 fallback for non-Atmos content).
+
+### 13a.4 RP08-04 — Client-side tone-mapping GPU not available
+
+**Detection:** helix-hdr.ToneMapper returns ErrToneMapVulkanInit.
+
+**Mitigation:** Per [helix-hdr §9.3](../06_Submodules/per-submodule/helix-hdr.md#93-common-errors-and-remediation) ErrToneMapVulkanInit fallback path activates CPU tone-mapping (slower but functional).
+
+**Remediation:** Operator's runbook §5.6 — per-GPU-model tone-mapping support matrix; client communication on degraded-fidelity SDR fallback.
+
+### 13a.5 A/V sync drift > 40 ms p999
+
+**Detection:** `helix_av_sync_drift_ms` > 40 over 5-min session.
+
+**Mitigation:** Per-stage timestamp correlation; helix-pipeline per-stage HDR histograms surface drift origin.
+
+**Remediation:** Operator's runbook §6.3 — drift forensics; common causes: encoder GPU saturation, transport jitter, client decoder slow.
+
+---
+
 ## 14. Implementation Considerations
 
 ### 14.1 Atmos vs 5.1 channel-map mismatch

@@ -268,6 +268,50 @@ Per-task acceptance criteria expanding §4 task details:
 
 ---
 
+## 13a. Per-Phase Risk Mitigation Detail
+
+### 13a.1 RP06-01 — Sunshine upstream rebase introduces breaking change
+
+**Detection:** Sunshine v$NEW upstream release; HelixAgent rebase CI fails.
+
+**Mitigation:** 90-day rebase cadence + documented divergence delta in `SUNSHINE-FORK-DELTA.md`; per-rebase staging-environment burn-in for 7 days before production promotion.
+
+**Remediation:** Operator's runbook §2.7 — per-rebase conflict resolution playbook; if rebase blocks > 30 days, operator's CTO decision-point on stay-vs-fork.
+
+### 13a.2 RP06-02 — Game launcher EULA conflict with helix-r18-safeexec audit
+
+**Detection:** Operator's legal team flags launcher EULA on per-launcher annual review.
+
+**Mitigation:** Per-launcher legal review per CZ-7 closure; operator-side per-jurisdiction legal-team signoff before launcher integration ships.
+
+**Remediation:** Operator's runbook §3.5 — launcher integration disable workflow; per-launcher feature flag in operator's commercial dashboard.
+
+### 13a.3 RP06-03 — Auto-update breaks per-mirror trust
+
+**Detection:** Russian-jurisdiction operator pulls Western-only digest; cosign verify fails.
+
+**Mitigation:** Auto-update pulls from operator's preferred mirror only; per-mirror cosign trust-anchor configuration.
+
+**Remediation:** Operator's runbook §4.3 — per-mirror trust-anchor reconfiguration; per-jurisdictional operator chooses gitflic + gitverse vs github + gitlab.
+
+### 13a.4 RP06-04 — Vanguard motherboard attestation rejects host
+
+**Detection:** Vanguard-protected game session fails to launch with attestation error.
+
+**Mitigation:** Per-game compatibility matrix advertised; Vanguard-protected games default-disabled; operator-side per-jurisdictional override.
+
+**Remediation:** Operator's runbook §5.6 — per-game compatibility matrix update; operator decision-point on Vanguard-game support tier.
+
+### 13a.5 R-18 violation detected at runtime
+
+**Detection:** helix-r18-safeexec deny-list match logged + Prometheus alert fires.
+
+**Mitigation:** Per-deploy helix-r18-safeexec-vet linter blocks merge; runtime eBPF probe per Phase_11 P11.T02.S03.
+
+**Remediation:** Operator's runbook §6.4 — R-18 violation incident response; per-Constitution §11.5 forbidden-commands sweep + offending code revert + post-incident review.
+
+---
+
 ## 14. Implementation Considerations
 
 ### 14.1 Sunshine fork rebase cadence

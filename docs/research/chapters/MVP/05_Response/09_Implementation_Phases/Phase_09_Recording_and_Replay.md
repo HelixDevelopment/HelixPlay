@@ -313,6 +313,50 @@ SLO breaches trigger Prometheus alerts routed via [O04 §4](../08_Operations/04_
 
 ---
 
+## 13a. Per-Phase Risk Mitigation Detail
+
+### 13a.1 RP09-01 — MinIO storage cost runaway
+
+**Detection:** Per-region MinIO capacity gauge > 80% allocation; per-tenant retention policy non-compliance.
+
+**Mitigation:** Per-tenant retention policy default 90 days + operator-tunable; cold-tier eviction at 30 days; per-tier retention differentiation (Free 7 days, Standard 30, Pro 90, Enterprise 365).
+
+**Remediation:** Operator's runbook §3.2 — per-tenant retention policy update + manual cold-tier migration.
+
+### 13a.2 RP09-02 — DASH segment cosign signature mismatch
+
+**Detection:** Web replay client surfaces cosign-verify failure event.
+
+**Mitigation:** Per-segment signing + verify; mismatch rejects replay; cosign trust-anchor pinned per-tenant.
+
+**Remediation:** Operator's runbook §4.4 — segment forensics + cosign chain integrity audit; offending segment removed + replay manifest re-published.
+
+### 13a.3 RP09-03 — At-rest encryption key-rotation breaks replay
+
+**Detection:** Post-rotation replay-attempt fails with decrypt error.
+
+**Mitigation:** Lazy DEK re-wrap per [helix-vault §2.4](../06_Submodules/per-submodule/helix-vault.md); recordings remain decryptable across KEK rotations.
+
+**Remediation:** Operator's runbook §5.6 — per-recording DEK re-wrap procedure; per-tenant batch re-wrap on annual KEK rotation cadence.
+
+### 13a.4 RP09-04 — GDPR erasure-on-demand SLA exceeded
+
+**Detection:** `helix_gdpr_erasure_pending_days` > 25 (alarm threshold; 30-day SLA).
+
+**Mitigation:** Auto-triggered DEK shred; per-tenant erasure progress dashboard; operator's compliance officer escalation at day-25.
+
+**Remediation:** Operator's runbook §6.3 — manual erasure acceleration; operator's data-protection officer signs off on certificate.
+
+### 13a.5 Per-tenant recording quality regression
+
+**Detection:** Per-tenant rolling p10 VMAF score drops below 90 floor.
+
+**Mitigation:** Nightly helix-vqa batch surfaces per-tenant trend; per-tenant alert at 7-day rolling p10 < 90.
+
+**Remediation:** Operator's runbook §7.4 — per-tenant capture-stage forensics; common causes: per-tenant network jitter, per-tenant encoder GPU contention.
+
+---
+
 ## 14. Implementation Considerations
 
 ### 14.1 Segment-duration vs replay-seek-latency trade-off

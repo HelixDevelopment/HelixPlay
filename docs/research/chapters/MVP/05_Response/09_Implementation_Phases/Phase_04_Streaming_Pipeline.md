@@ -206,6 +206,49 @@ Operator-side capacity: 4–6 engineers covering Go + GPU + WebRTC + networking.
 
 ---
 
+## 10a. Per-Phase Detailed Task Acceptance Criteria
+
+### 10a.1 Capture pipeline acceptance (P04.T01)
+
+- helix-capture initializes against operator-host display (Linux: KMS/DRM via libdrm; Windows: Desktop Duplication API; macOS: ScreenCaptureKit on macOS 12.3+).
+- Per-frame capture latency p999 ≤ 2 ms.
+- Capture format negotiation (RGB / BGRA / NV12) verified per platform; zero per-frame conversion when GPU-direct path active.
+- Hot-plug display change detected + handled gracefully without session interruption.
+
+### 10a.2 Encode pipeline acceptance (P04.T02)
+
+- helix-encoder initialised against operator-host GPU; H.264 (baseline + main + high), HEVC (main + main10), AV1 (per-GPU capability) negotiated per session.
+- Per-frame encode latency p999 ≤ 4 ms (4K60) on reference NVIDIA RTX 4090 / 3090; ≤ 8 ms on RTX 3060 baseline.
+- Per-codec quality target VMAF ≥ 92 at 25 Mbps 4K60.
+- Encoder reset on stream parameter change (resolution / fps / codec) within 100 ms.
+
+### 10a.3 Pipeline composition acceptance (P04.T03..T05)
+
+- helix-pipeline.New builds the goroutine topology per [C36 §8](../05_Video_Audio/05_Go_Pipeline_Implementation.md).
+- helix-pipeline.Start brings up capture → encoder → transport with per-stage HDR histograms.
+- helix-pipeline.Stop graceful shutdown within 1 s p99.
+- Per-stage drop counter exposes pipeline backpressure events.
+
+### 10a.4 Transport acceptance (P04.T06..T08)
+
+- helix-transport WebRTC mode: STUN/TURN/ICE negotiation verified; DTLS-SRTP; per-region Coturn integration.
+- helix-transport custom-UDP mode: operator-LAN-only; helix-network DSCP marking + L4S signalling.
+- Per-session packet-loss < 0.1% over reference network.
+- Reconnect-on-disconnect within 2 s p99.
+
+### 10a.5 Control plane acceptance (P04.T09..T10)
+
+- gRPC bidirectional stream over HTTP/3 (QUIC); per-tenant TLS 1.3-only.
+- Control messages (input + reflex echo + ABR signals) interleaved with media stream without head-of-line blocking.
+- Brotli compression on control-plane gRPC bodies per [C06 §6](../03_Architecture/05_Data_Plane.md).
+
+### 10a.6 End-to-end smoke acceptance (P04.T11..T12)
+
+- Synthetic 4K60 SDR + 5.1 audio session for 5 minutes; p999 latency within Phase_04 relaxed budget (≤ 25 ms); zero packet loss; clean teardown.
+- helix-bench histogram export + helix-vqa VMAF score green.
+
+---
+
 ## 11. Per-Phase Observability Catalogue
 
 ### 11.1 Prometheus metrics
@@ -245,6 +288,50 @@ Operator-side capacity: 4–6 engineers covering Go + GPU + WebRTC + networking.
 ## 13. Per-Phase Operator Runbook
 
 `HelixDevelopment/HelixPipeline/docs/runbook/phase04-operations.md` — covers per-region pipeline deployment, ABR tuning per Phase_04 P04.T07, transport WebRTC vs custom-UDP fallback, codec capability negotiation, end-to-end smoke probe execution.
+
+---
+
+## 13a. Per-Phase Risk Mitigation Detail
+
+### 13a.1 Capture-side framerate drops
+
+**Detection:** `helix_capture_frames_total` rate < target framerate over 5-second rolling window.
+
+**Mitigation:** Per-platform capture path GPU-direct preferred; CPU fallback documented in §14.
+
+**Remediation:** Operator's runbook §2.4 — per-platform capture diagnostic playbook; common causes: display driver mismatch, GPU resource contention, hot-plug event mid-session.
+
+### 13a.2 Encoder reset oscillation
+
+**Detection:** `helix_encoder_reset_total` rate > 1 / minute on stable network.
+
+**Mitigation:** Stream parameter change throttling (≥ 5 s between resets); per-codec capability cache.
+
+**Remediation:** Operator's runbook §3.6 — encoder reset cause analysis; usually mismatched client capability negotiation.
+
+### 13a.3 Transport packet loss spike
+
+**Detection:** `helix_transport_packets_lost_total` rate > 0.5% over 10-second rolling window.
+
+**Mitigation:** Per-region Coturn relay; ABR rate-down on loss; FEC repair packets.
+
+**Remediation:** Operator's runbook §4.3 — per-region transit diagnostic; common causes: ISP peering degradation, client wifi instability, operator's edge firewall mis-config.
+
+### 13a.4 Pipeline backpressure cascade
+
+**Detection:** Per-stage drop counter > 0; downstream stage starvation.
+
+**Mitigation:** Bounded channels with explicit drop policy per [C36 §8](../05_Video_Audio/05_Go_Pipeline_Implementation.md); per-stage circuit breaker.
+
+**Remediation:** Operator's runbook §5.2 — pipeline-stage drop forensics; common causes: encoder GPU saturation, transport NIC saturation, downstream client slow.
+
+### 13a.5 Codec capability negotiation failure
+
+**Detection:** Session-start aborted with codec-mismatch error.
+
+**Mitigation:** Capability fallback chain (AV1 → HEVC → H.264); per-client capability cache.
+
+**Remediation:** Operator's runbook §6.4 — per-client capability re-negotiation; common causes: client codec library outdated, GPU driver outdated.
 
 ---
 

@@ -204,6 +204,57 @@ Constitution §16 signoff + §6 exit criteria.
 
 ---
 
+## 10a. Per-Phase Detailed Task Acceptance Criteria
+
+### 10a.1 CockroachDB cluster acceptance (P03.T01..T03)
+
+- 3-node minimum (5-node recommended) cluster operational across operator's region(s); per-node 16 vCPU + 64 GB RAM + NVMe SSD.
+- TLS-only client connections (root + per-tenant SQL users); cluster-internal mTLS.
+- Multi-region replication enabled (per Phase_12 P12.T08 RPO ≤ 1 minute target).
+- Per-tenant database namespace with row-level security policies.
+- Backup to MinIO every 4 hours; retention 30 days; restore drill quarterly per [helix-vault §4](../06_Submodules/per-submodule/helix-vault.md).
+- Schema migrations via cockroach-sql migration tool; per-PR review before apply.
+
+### 10a.2 NATS JetStream acceptance (P03.T04..T05)
+
+- 3-node JetStream cluster; replication factor 3 on critical streams.
+- Per-stream retention policy operator-tunable (default: 7 days).
+- Per-tenant subject hierarchy: `helix.<tenant>.<service>.<event-type>`.
+- TLS-only client connections; per-service NKey authentication.
+- Streams for billing events (`helix.billing.events.<tenant>`), session lifecycle (`helix.sessions.<tenant>`), audit log (`helix.audit.<tenant>`).
+
+### 10a.3 Redis Sentinel acceptance (P03.T06)
+
+- 3-node Sentinel quorum + 1 master + 2 replicas per tenant tier.
+- Automatic failover within 10 s on master failure.
+- Per-tenant database isolation (Redis logical DB per tenant).
+- Read-only replicas for high-volume read paths (session caching, rate-limit counters).
+- TLS-only client connections.
+
+### 10a.4 Vault HA acceptance (P03.T07..T08)
+
+- 3-node Vault HA cluster with auto-unseal via cloud-KMS or per-region HSM.
+- Per-tenant namespace isolation per [helix-vault §3](../06_Submodules/per-submodule/helix-vault.md).
+- KEK rotation policy active (annual cadence).
+- Per-tenant DEK lifecycle automated.
+- Audit log to operator's SIEM.
+
+### 10a.5 Coturn acceptance (P03.T09)
+
+- Per-region Coturn cluster (2-node minimum) behind operator's edge firewall.
+- STUN + TURN-over-UDP + TURN-over-TCP supported.
+- Per-tenant relay credentials rotated via Vault.
+- Bandwidth budget per-tenant enforceable.
+
+### 10a.6 Service mesh + DNS acceptance (P03.T10..T11)
+
+- mDNS/DNS-SD on operator's LAN per [O03 §2](../08_Operations/03_Service_Discovery_and_Ports.md).
+- DoH alternative for jurisdiction-restricted operators (Russian-jurisdiction path).
+- Cilium NetworkPolicy default-deny baseline.
+- Per-service Prometheus scrape configuration via DNS-SD.
+
+---
+
 ## 11. Per-Phase Observability Catalogue
 
 ### 11.1 Prometheus metrics
@@ -247,6 +298,52 @@ Constitution §16 signoff + §6 exit criteria.
 ## 13. Per-Phase Operator Runbook
 
 `HelixDevelopment/HelixOps/docs/runbook/phase03-backend-services.md` covering CockroachDB cluster bootstrap, NATS JetStream stream provisioning, Redis Sentinel failover drill, Vault HA + KEK rotation, Coturn STUN/TURN configuration, per-region service-mesh deployment, backup + restore drill procedure.
+
+---
+
+## 13a. Per-Phase Risk Mitigation Detail
+
+Each Risk Register entry from §7 elaborated with concrete monitoring + remediation procedures:
+
+### 13a.1 RP03-01 — CockroachDB cluster split-brain
+
+**Detection:** Prometheus alert on `cockroach_distsender_rangelookups_total` divergence across nodes; alarm if range-lookup count differs by > 10% across nodes within 1-minute window.
+
+**Mitigation:** 5-node minimum (vs 3-node default) for production; per-node clock skew NTP-enforced; etcd-style quorum-based consensus.
+
+**Remediation:** Operator's runbook §3.2 — manual quorum repair via cockroach debug tooling; if repair fails, escalate to multi-region replication promotion.
+
+### 13a.2 RP03-02 — NATS JetStream durability loss
+
+**Detection:** `nats_jetstream_replicas_count` < configured replication-factor.
+
+**Mitigation:** Replication factor 3 on critical streams; cross-AZ replica placement; per-stream operator-tunable storage limits.
+
+**Remediation:** Operator's runbook §4.5 — replica replacement procedure; per-stream re-replication triggered automatically.
+
+### 13a.3 RP03-03 — Redis Sentinel failover delay
+
+**Detection:** Failover-trigger event observed but new master not elected within 10 s.
+
+**Mitigation:** Per-region Sentinel quorum; per-tier Redis tier separation (operator's mission-critical paths use dedicated Redis cluster).
+
+**Remediation:** Operator's runbook §5.3 — Sentinel re-quorum procedure; manual master promotion if quorum unrecoverable.
+
+### 13a.4 RP03-04 — Vault auto-unseal failure
+
+**Detection:** Vault sealed-state observed > 30 s post-restart.
+
+**Mitigation:** Per-region cloud-KMS or HSM redundancy; per-cluster Shamir secret-sharing fallback for air-gapped operators.
+
+**Remediation:** Operator's runbook §6.2 — manual unseal via Shamir keys held by 3-of-5 operator key custodians.
+
+### 13a.5 RP03-05 — Coturn DDoS amplification
+
+**Detection:** Per-relay bandwidth gauge spike to > 10× rolling baseline.
+
+**Mitigation:** Per-tenant relay credentials rotated 90 days; per-relay bandwidth budget; rate-limit on STUN/TURN handshakes.
+
+**Remediation:** Operator's runbook §7.4 — abusive-tenant credential revocation + IP block-list update.
 
 ---
 

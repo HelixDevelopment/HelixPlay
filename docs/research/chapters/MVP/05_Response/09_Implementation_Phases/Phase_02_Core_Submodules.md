@@ -281,6 +281,64 @@ Operator signoff per Constitution §16 + the §6 exit criteria.
 
 ---
 
+## 10a. Per-Cohort Detailed Acceptance Criteria
+
+Each cohort's graduation gate requires the following verifiable conditions before downstream cohorts may begin:
+
+### 10a.1 Cohort A (Architecture-family, depth-0..1) acceptance
+
+**helix-r18-safeexec** (the SPOF root): all 10 test types green per [S01 §9.2](../06_Submodules/01_Submodule_Catalog.md#92-the-v100-graduation-criteria); helix-r18-safeexec-vet linter shipped; deny-list cosign-signed; v1.0.0 graduation tag pushed to all 4 mirrors.
+
+**helix-otel-init**: per-tenant scope tags + OTLP exporter; 3-of-3 OTel SDK conformance tests; v1.0.0 graduation.
+
+**helix-grpc-frame**: gRPC-over-HTTP/3 (QUIC) + gRPC-over-HTTP/2 fallback; protobuf interface frozen; v1.0.0 graduation.
+
+**helix-vault**: KEK + DEK lifecycle; per-tenant namespace isolation; KV-v2 + Transit + PKI engines; v1.0.0 graduation.
+
+**helix-tenant**: AuthService + PolicyEngine + LifecycleService; OAuth 2.1 + OIDC + RBAC + Rego policies; v1.0.0 graduation.
+
+### 10a.2 Cohort B (Latency depth-1) acceptance
+
+**helix-shm**: zero-copy POSIX SHM + memfd; cross-process handoff verified; Challenges delegated to helix-pipeline per S01 §6 SPOF analysis; v1.0.0 graduation.
+
+**helix-iouring**: io_uring SQE submission + CQE polling; per-OS capability detection; fallback to standard syscalls; v1.0.0 graduation.
+
+**helix-xdp**: AF_XDP zerocopy; per-NIC capability detection; CAP_BPF named §11.5.3 exception; v1.0.0 graduation.
+
+**helix-lockfree**: lockfree ring buffer + MPSC + SPMC primitives; ABA-protection verified; v1.0.0 graduation.
+
+**helix-mempool**: per-pool sized allocator with reuse + free-list invariants; v1.0.0 graduation.
+
+**helix-allocator**: ModeOff / ModeReport / ModeStrict escalation per [helix-allocator §3](../06_Submodules/per-submodule/helix-allocator.md); v1.0.0 graduation.
+
+**helix-bench**: HDR-histogram-backed sampling + benchstat + Mann-Whitney U; Benchmarking delegation per S01 §6; v1.0.0 graduation.
+
+### 10a.3 Cohort C (Latency depth-2 + Video/Audio depth-1) acceptance
+
+**helix-rtos**: SCHED_FIFO + cgroup pinning + PREEMPT_RT detection + CAP_SYS_NICE named §11.5.3 exception; v1.0.0 graduation.
+
+**helix-gpu-direct**: GPUDirect RDMA + nvidia-peermem integration; BIOS prereq probe; v1.0.0 graduation.
+
+**helix-network**: DSCP marking + L4S signalling + per-region transit-policy; v1.0.0 graduation.
+
+**helix-input** + **helix-display**: Reflex echo + ALLM signalling + per-platform input handling; v1.0.0 graduation.
+
+**helix-codec** + **helix-encoder** + **helix-capture**: per-codec capability negotiation + per-platform capture path + per-GPU encoder dispatch; v1.0.0 graduation.
+
+### 10a.4 Cohort D (composite primitives) acceptance
+
+**helix-pipeline**: goroutine topology + per-stage HDR histograms + backpressure handling per [C36 §8](../05_Video_Audio/05_Go_Pipeline_Implementation.md); v1.0.0 graduation.
+
+**helix-transport** + **helix-abr** + **helix-dualpath**: WebRTC + custom-UDP + per-network ABR + dual-rung NAL split; v1.0.0 graduation.
+
+**helix-record** + **helix-audio** + **helix-hdr**: fMP4 + MKV mux + Opus MultiStream + PQ/HLG/HDR10/HDR10+/DV; v1.0.0 graduation.
+
+### 10a.5 Cohort E (closure) acceptance
+
+**helix-vqa** + **helix-thermal** + **helix-tv-input**: VMAF + ViSQOL measurement + thermal balancing + TV input handling; v1.0.0 graduation closes the 29-submodule catalog.
+
+---
+
 ## 11. Per-Phase Observability Catalogue
 
 The Phase_02 deployment exposes per-submodule deployment-stage metrics; per [S01 §9](../06_Submodules/01_Submodule_Catalog.md):

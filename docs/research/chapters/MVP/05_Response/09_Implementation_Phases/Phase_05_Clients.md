@@ -213,6 +213,42 @@ Constitution §16 signoff + §6 exit criteria.
 
 ---
 
+## 10a. Per-Phase Detailed Task Acceptance Criteria
+
+### 10a.1 Wails desktop client acceptance (P05.T01..T05)
+
+- Wails v2 application builds on Linux (x86_64 + arm64), macOS (x86_64 + arm64), Windows (x86_64).
+- Application bundle size ≤ 80 MB per-platform after distroless-base + tree-shake.
+- First-frame render within 3 s p99 from launch on reference hardware (Intel UHD 770 / Apple M1 / AMD Radeon).
+- Per-OS code-signing verified: Apple notarization, Microsoft Authenticode, Linux Sigstore-cosign.
+- Auto-update mechanism cosign-verified per [Phase_06 P06.T07](Phase_06_Host_Agent.md#47-p06t07--auto-update).
+- Crash-rate < 1 / 1,000 sessions verified via Sentry-mirrored telemetry.
+
+### 10a.2 Compose-for-TV client acceptance (P05.T06..T09)
+
+- Compose-for-TV `androidx.tv.material3` 1.0 GA + 1.1.0-rc01 build verified.
+- Focus-target 64 dp minimum size (WCAG 2.2 SC 2.5.8 + per [C12 Z-3](../03_Architecture/11_TV_UX.md)).
+- Focus-target action response p99 ≤ 100 ms.
+- Trailer auto-play: 2 s focus dwell + 7 s auto-advance + reduced-motion override per C12 Z-2.
+- Play Store + Amazon Appstore submission accepted (operator-side commercial agreement).
+- Leanback deprecation path: Compose-for-TV is the only Android-TV path post 2026-08-31.
+
+### 10a.3 Steam Deck client acceptance (P05.T10..T12)
+
+- Steam Deck native build (arm64 SteamOS).
+- Sustained 25 W operation with thermal throttling profile.
+- Quick Access Menu integration verified.
+- Per-game thermal profile auto-calibrated.
+- Steam OAuth + ownership-API integration verified (T13).
+
+### 10a.4 Cross-cutting acceptance (P05.T13)
+
+- Per-launcher OAuth (Steam + GOG + Epic + Battle.net) flow completion ≥ 99% per [Phase_10 P10.T13](Phase_10_Monetization_and_Auth.md#413-p10t13--per-game-launcher-entitlement-check).
+- Per-client codec capability negotiation (H.264 + HEVC + AV1) verified.
+- Per-client mDNS discovery + first-session smoke green per [Phase_06 P06.T11](Phase_06_Host_Agent.md#411-p06t11--end-to-end-smoke).
+
+---
+
 ## 11. Per-Phase Observability Catalogue
 
 ### 11.1 Prometheus metrics
@@ -252,6 +288,50 @@ Constitution §16 signoff + §6 exit criteria.
 ## 13. Per-Phase Operator Runbook
 
 `HelixDevelopment/HelixClients/docs/runbook/phase05-operations.md` covering Wails per-OS deployment, Compose-for-TV Play Store + Amazon Appstore submission, Steam Deck thermal calibration, per-launcher OAuth troubleshooting, client-side crash log triage (Sentry-mirrored to operator's SIEM), per-client auto-update mirror configuration.
+
+---
+
+## 13a. Per-Phase Risk Mitigation Detail
+
+### 13a.1 Wails desktop crash spike
+
+**Detection:** `helix_client_crash_total` rate > 1 / 1,000 sessions per platform.
+
+**Mitigation:** Sentry-mirrored telemetry with per-version per-OS crash grouping; pre-release crash budget gate (≤ 0.5% per beta release).
+
+**Remediation:** Operator's runbook §2.5 — per-version crash forensics; rollback to prior version via auto-update if crash > 1% post-release.
+
+### 13a.2 Compose-for-TV focus-target accessibility regression
+
+**Detection:** Per-screen automated WCAG 2.2 SC 2.5.8 audit fails.
+
+**Mitigation:** Per-PR CI gate runs Espresso accessibility tests; per-screen focus-target enumeration audited.
+
+**Remediation:** Operator's runbook §3.3 — per-screen focus-target re-design with operator's accessibility consultant.
+
+### 13a.3 Steam Deck thermal throttle excessive
+
+**Detection:** Per-session sustained-power gauge < 25 W target on > 10% of sessions.
+
+**Mitigation:** Per-game thermal profile auto-calibrated; user-overridable via Quick Access Menu.
+
+**Remediation:** Operator's runbook §4.2 — per-game thermal profile re-calibration; common causes: ambient temp spike, dock-mode misconfiguration.
+
+### 13a.4 Per-launcher OAuth flow regression
+
+**Detection:** Per-launcher OAuth completion < 99% over 24-hour rolling window.
+
+**Mitigation:** Per-launcher fallback URI + per-launcher capability cache; operator-side OAuth health dashboard.
+
+**Remediation:** Operator's runbook §5.4 — per-launcher fallback path activation; common causes: launcher-side API breaking change (Battle.net URI broken since 2024 per Z-3), launcher-side OAuth credential rotation.
+
+### 13a.5 Auto-update adoption stalled
+
+**Detection:** Per-version adoption < 90% within 48 hours of release.
+
+**Mitigation:** Forced-update flag for security-critical releases; per-tier opt-out for Enterprise tier (operator-mediated).
+
+**Remediation:** Operator's runbook §6.7 — per-customer escalation if Enterprise tier > 7 days behind; common causes: customer firewall blocking auto-update mirror.
 
 ---
 

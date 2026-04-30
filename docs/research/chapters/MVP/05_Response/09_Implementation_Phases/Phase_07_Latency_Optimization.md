@@ -281,6 +281,50 @@ Per-task acceptance criteria expanding §4 task details:
 
 ---
 
+## 13a. Per-Phase Risk Mitigation Detail
+
+### 13a.1 RP07-01 — PREEMPT_RT kernel not available
+
+**Detection:** helix-rtos.SCHED_FIFOCapability returns false; per-CPU jitter measurement shows p999 > 200 µs.
+
+**Mitigation:** Stock kernel works at slightly worse jitter; helix-rtos detects + adapts; per-deployment p999 budget adjusted.
+
+**Remediation:** Operator's runbook §2.3 — PREEMPT_RT kernel deployment procedure; per-distro kernel package selection (rt-kernel package or custom build).
+
+### 13a.2 RP07-02 — GPUDirect BIOS prerequisites not satisfied
+
+**Detection:** helix-gpu-direct.RegisterRDMA fails with PCIe topology error.
+
+**Mitigation:** Operator pre-deployment checklist per [helix-gpu-direct §9.4](../06_Submodules/per-submodule/helix-gpu-direct.md); BIOS Above-4G + ACS-disabled probe at host-startup.
+
+**Remediation:** Operator's runbook §3.5 — BIOS settings reconfiguration; per-motherboard-vendor procedure (Supermicro / ASUS / Gigabyte).
+
+### 13a.3 RP07-03 — Hot-path allocation discovered by ModeStrict in production
+
+**Detection:** ModeStrict panic on hot-path goroutine.
+
+**Mitigation:** ModeStrict escalation only after 2 cycles of clean ModeReport; per-cycle compliance officer review.
+
+**Remediation:** Operator's runbook §4.6 — emergency rollback to ModeReport; offending allocation site identified via panic stack trace + escape-analysis review.
+
+### 13a.4 RP07-04 — DSCP marking stripped at operator's egress
+
+**Detection:** Per-region packet capture shows DSCP zero on outbound traffic.
+
+**Mitigation:** Operator-side firewall config audit; per-region transit provider DSCP preservation SLA.
+
+**Remediation:** Operator's runbook §5.2 — per-firewall DSCP preservation procedure; per-transit-provider SLA escalation if DSCP stripping persists.
+
+### 13a.5 p999 latency budget regression
+
+**Detection:** Canonical Challenges scenario reports p999 > 8 ms.
+
+**Mitigation:** Per-stage HDR histogram surface stage-specific regression; helix-bench Mann-Whitney U change-point detection per [T11 §6](../07_Testing/11_Challenges.md).
+
+**Remediation:** Operator's runbook §6.4 — per-stage budget audit; regression bisection via git-bisect against per-stage benchmark.
+
+---
+
 ## 14. Implementation Considerations
 
 ### 14.1 PREEMPT_RT vs stock kernel
