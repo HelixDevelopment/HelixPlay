@@ -154,7 +154,7 @@ The drill produces a signed run-archive entry; operator signs off the drill befo
 
 ## 5. Subtask Catalogue
 
-46 subtasks across 11 tasks; bulk-imported.
+46 subtasks across 11 tasks; per-task discrete `[P03.Tyy.Szz]` tickets per [O05](../08_Operations/05_Tracking_GitHub_GitLab.md). Sub-categories: CockroachDB (T01..T03), NATS JetStream (T04..T05), Redis Sentinel (T06), Vault HA (T07..T08), Coturn (T09), service mesh + DNS (T10..T11). Per-subtask: helm-chart deployment + post-deploy verification probe + observability emission + backup + restore drill reference per §4d.
 
 ---
 
@@ -198,7 +198,102 @@ Constitution §16 signoff + §6 exit criteria.
 
 ---
 
-## 10. Anti-Bluff Verification
+## 10. The Phase_03 Calendar
+
+~ 4 weeks. Operator-side capacity: 4 engineers (2× SRE for CockroachDB + NATS deployment; 1× security engineer for Vault production; 1× ops engineer for Coturn + service mesh).
+
+---
+
+## 11. Per-Phase Observability Catalogue
+
+### 11.1 Prometheus metrics
+
+| Metric | Type | Labels | SLO Target |
+|--------|------|--------|------------|
+| `cockroach_sql_query_seconds` | histogram | tenant | p99 ≤ 50 ms |
+| `cockroach_replication_lag_seconds` | gauge | range, region | p99 ≤ 1 s |
+| `nats_jetstream_messages_total` | counter | stream, tenant | per-stream rate |
+| `nats_jetstream_consumer_pending` | gauge | stream, consumer | < 1000 steady |
+| `redis_connected_clients` | gauge | tenant | per-tenant connection budget |
+| `redis_replication_lag_seconds` | gauge | replica | p99 ≤ 100 ms |
+| `vault_secret_access_total` | counter | tenant, mount | per-secret audit |
+| `vault_token_lifecycle_total` | counter | tenant, op | rotation cadence |
+| `coturn_active_relays` | gauge | region | per-tenant TURN |
+
+### 11.2 Grafana dashboards
+
+- **Per-region CockroachDB Health** — SQL latency / replication lag / per-range health.
+- **Per-tenant NATS JetStream** — stream depth + consumer lag + per-tenant retention.
+- **Per-tenant Redis** — connection count + replication lag + per-tenant memory.
+- **Per-tenant Vault** — secret-access audit + token lifecycle + KV-v2 versioning.
+- **Per-region Coturn** — active relays + bandwidth + per-tenant relay budget.
+
+---
+
+## 12. Per-Phase SLI / SLO Definitions
+
+| SLI | Definition | SLO Target | Window |
+|-----|------------|------------|--------|
+| CockroachDB query latency | SQL query p99 latency | ≤ 50 ms | 7-day rolling |
+| CockroachDB replication | Multi-region replication lag p99 | ≤ 1 s | 7-day rolling |
+| NATS JetStream durability | Messages delivered with at-least-once | 100% | per-message |
+| Redis availability | Per-tenant Redis Sentinel availability | ≥ 99.95% | 30-day rolling |
+| Vault availability | Per-tenant secret retrieval | ≥ 99.99% | 30-day rolling |
+| Coturn relay availability | Per-region TURN relay | ≥ 99.9% | 30-day rolling |
+| Backup + restore drill | Per-quarter drill executed | 100% | quarterly |
+
+---
+
+## 13. Per-Phase Operator Runbook
+
+`HelixDevelopment/HelixOps/docs/runbook/phase03-backend-services.md` covering CockroachDB cluster bootstrap, NATS JetStream stream provisioning, Redis Sentinel failover drill, Vault HA + KEK rotation, Coturn STUN/TURN configuration, per-region service-mesh deployment, backup + restore drill procedure.
+
+---
+
+## 14. Implementation Considerations
+
+### 14.1 CockroachDB multi-region vs single-region
+
+Multi-region for ≥ 99.99% availability + RPO ≤ 1 minute (per Phase_12 P12.T08). Single-region acceptable for early-stage operators with ≤ 99.9% SLA tier.
+
+### 14.2 NATS JetStream vs Kafka
+
+NATS JetStream selected per [C06](../03_Architecture/05_Data_Plane.md) — operator-self-hosted, simpler ops, sufficient throughput for per-tenant event streams. Kafka considered + rejected for ops complexity.
+
+### 14.3 Vault HA topology
+
+Vault HA (3-node cluster) with auto-unseal via cloud-KMS or per-region HSM. Per-tenant namespace isolation per [helix-vault §3](../06_Submodules/per-submodule/helix-vault.md).
+
+### 14.4 Coturn deployment placement
+
+Coturn placed inside operator's network per Phase_11 RP11-12 (DDoS scrubbing). Per-region Coturn cluster behind operator's edge firewall.
+
+---
+
+## 15. Phase_03 Cost Estimation
+
+Per-region monthly cost (3-node clusters):
+
+| Component | Per-Region Per-Month |
+|-----------|----------------------|
+| CockroachDB 3-node (16 vCPU + 64 GB RAM each) | ~$1,200 |
+| NATS JetStream 3-node (4 vCPU + 16 GB RAM each) | ~$240 |
+| Redis Sentinel 3-node (2 vCPU + 8 GB RAM each) | ~$120 |
+| Vault HA 3-node (2 vCPU + 8 GB RAM each) | ~$120 |
+| Coturn 2-node + bandwidth | ~$200 |
+| **Total per-region per-month** | **~$1,880** |
+
+Per-region scaling cost amortised across all tenants in that region.
+
+---
+
+## 16. Cross-Mirror Parity Verification
+
+Phase_03 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Replay.md#16-cross-mirror-parity-verification) pattern.
+
+---
+
+## 17. Anti-Bluff Verification
 
 ### 10.1 Sources resolved
 

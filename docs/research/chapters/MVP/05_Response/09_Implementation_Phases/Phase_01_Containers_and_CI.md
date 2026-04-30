@@ -305,9 +305,89 @@ Operator signoff per Constitution §16 + the §6 exit criteria checklist.
 
 ---
 
-## 10. Anti-Bluff Verification
+## 10. The Phase_01 Calendar
 
-### 10.1 Sources resolved
+~ 4 weeks. Operator-side capacity: 4 engineers (2× containers/CI engineers; 1× security engineer for cosign + SLSA; 1× ops engineer for runner deployment).
+
+---
+
+## 11. Per-Phase Observability Catalogue
+
+### 11.1 Prometheus metrics
+
+| Metric | Type | Labels | SLO Target |
+|--------|------|--------|------------|
+| `helix_containers_build_seconds` | histogram | submodule, target | per-target wall-time |
+| `helix_containers_publish_seconds` | histogram | submodule, mirror | p99 ≤ 30 s |
+| `helix_cosign_sign_total` | counter | submodule, key | per-build |
+| `helix_slsa_provenance_emitted_total` | counter | submodule | 100% |
+| `helix_sbom_emitted_total` | counter | submodule, generator | both cyclonedx-gomod + syft |
+| `helix_runner_pool_size` | gauge | mirror, arch | per-arch capacity |
+| `helix_runner_active_count` | gauge | mirror | < 90% saturation |
+| `helix_pinned_digest_drift_total` | counter | submodule, base | 0 |
+
+### 11.2 Grafana dashboards
+
+- **Per-submodule Build Pipeline** — build wall-time + cosign sign + SBOM emission per submodule.
+- **Per-mirror Runner Health** — runner pool capacity + saturation + per-arch breakdown.
+- **Cosign + SLSA + SBOM Coverage** — 100% coverage audit per release.
+
+---
+
+## 12. Per-Phase SLI / SLO Definitions
+
+| SLI | Definition | SLO Target | Window |
+|-----|------------|------------|--------|
+| Container build wall-time | Per-submodule build time with cache-warm | p99 ≤ 5 min | per-PR |
+| Multi-arch publish | amd64 + arm64 + arm64-v8 publication | 100% | per-release |
+| Cosign + SLSA L3 coverage | Per-release attestation | 100% | per-release |
+| Dual SBOM emission | cyclonedx-gomod + syft | 100% | per-release |
+| Pinned digest integrity | Base image digests pinned + verified | 100% | per-build |
+| Runner pool utilisation | Saturation per arch | < 90% | 7-day rolling |
+
+---
+
+## 13. Per-Phase Operator Runbook
+
+`HelixDevelopment/HelixContainers/docs/runbook/phase01-cicd.md` covering Containers v1.0.0 release-train procedure, per-mirror runner deployment, cosign keyless + Fulcio short-lived cert workflow, SLSA L3 build-environment isolation, dual SBOM verification, pinned-digest update procedure.
+
+---
+
+## 14. Implementation Considerations
+
+### 14.1 Cosign keyless vs key-based
+
+Cosign keyless (Sigstore + Fulcio short-lived certs) is canonical default. Key-based mode for operator-air-gapped + government-jurisdiction deployments.
+
+### 14.2 Dual SBOM (cyclonedx-gomod + syft)
+
+Both SBOM generators run; outputs cross-validated. cyclonedx-gomod is Go-specific (more accurate for Go modules); syft is universal (covers OS-level deps). Per [O01 §6](../08_Operations/01_Container_CI_CD.md).
+
+### 14.3 GOCACHEPROG vs Bazel remote-cache
+
+GOCACHEPROG selected (operator-self-hosted, simpler than Bazel BES). Per [O01 §10](../08_Operations/01_Container_CI_CD.md). Cuts 29-lane PR from 3.9 h to ~25 min.
+
+### 14.4 Multi-arch publishing
+
+amd64 + arm64 + arm64-v8 (Apple Silicon). QEMU emulation for cross-arch builds; native arm64 runners preferred for build wall-time.
+
+---
+
+## 15. Phase_01 Cost Estimation
+
+Per-mirror runner pool: 4 mirrors × ~$200 / month = ~$800 / month operator-side. GOCACHEPROG MinIO storage: ~$50 / month. Total Phase_01 operational cost: ~$850 / month for 29-lane CI across 4 mirrors.
+
+---
+
+## 16. Cross-Mirror Parity Verification
+
+Phase_01 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Replay.md#16-cross-mirror-parity-verification) pattern. Per-mirror image registry parity verified via cosign verify across all 4 mirrors.
+
+---
+
+## 17. Anti-Bluff Verification
+
+### 17.1 Sources resolved
 
 | Path                                                              | Lines  | Reviewed   | Role                                            |
 |-------------------------------------------------------------------|-------:|------------|-------------------------------------------------|
@@ -316,11 +396,11 @@ Operator signoff per Constitution §16 + the §6 exit criteria checklist.
 | [`../08_Operations/01_Container_CI_CD.md`](../08_Operations/01_Container_CI_CD.md) |    606 | 2026-04-30 | operational specification                       |
 | [`../07_Testing/10_Full_Automation.md`](../07_Testing/10_Full_Automation.md) |    307 | 2026-04-30 | workflow YAML consumer                           |
 
-### 10.2 Forbidden patterns
+### 17.2 Forbidden patterns
 
 Clean.
 
-### 10.3 Sign-off
+### 17.3 Sign-off
 
 - Drafted by: orchestrator (Claude Opus 4.7) on 2026-04-30 (specification only).
 - Pending: Phase_01 execution + operator signoff.

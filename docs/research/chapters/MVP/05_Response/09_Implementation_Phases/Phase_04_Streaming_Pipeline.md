@@ -140,7 +140,7 @@ Operator signoff per Constitution §16 + the §6 exit criteria.
 
 ## 5. Subtask Catalogue
 
-64 subtasks across 13 tasks; bulk-imported.
+64 subtasks across 13 tasks; per-task discrete `[P04.Tyy.Szz]` tickets per [O05](../08_Operations/05_Tracking_GitHub_GitLab.md). Sub-categories: capture (T01), encode (T02), pipeline (T03..T05), transport (T06..T08), control plane (T09..T10), end-to-end smoke (T11..T12), acceptance (T13). Each subtask carries: function entry-point + verification probe + observability emission + Challenges scenario reference per [T11 §6](../07_Testing/11_Challenges.md).
 
 ---
 
@@ -206,7 +206,89 @@ Operator-side capacity: 4–6 engineers covering Go + GPU + WebRTC + networking.
 
 ---
 
-## 11. Anti-Bluff Verification
+## 11. Per-Phase Observability Catalogue
+
+### 11.1 Prometheus metrics
+
+| Metric | Type | Labels | SLO Target |
+|--------|------|--------|------------|
+| `helix_pipeline_session_active_count` | gauge | tenant | per-tenant concurrency |
+| `helix_pipeline_stage_latency_seconds` | histogram | tenant, stage | per-stage Phase_04 budget |
+| `helix_capture_frames_total` | counter | tenant, source | rate ≥ frame-rate |
+| `helix_encoder_frames_emitted_total` | counter | tenant, codec | matches capture rate |
+| `helix_transport_packets_sent_total` | counter | tenant, transport | per-codec packet rate |
+| `helix_transport_packets_lost_total` | counter | tenant, transport | < 0.1% per session |
+| `helix_abr_rate_changes_total` | counter | tenant, direction | minimal under stable network |
+| `helix_session_reconnect_total` | counter | tenant, reason | < 1 / hour |
+
+### 11.2 Grafana dashboards
+
+- **Per-tenant Pipeline Health** — per-stage p99 latency + frame-rate stability.
+- **Per-region Transport Quality** — packet-loss + jitter + RTT per-region distribution.
+- **Per-codec ABR behaviour** — rate-change frequency + per-codec quality trend.
+
+---
+
+## 12. Per-Phase SLI / SLO Definitions
+
+| SLI | Definition | SLO Target | Window |
+|-----|------------|------------|--------|
+| Pipeline session start | Time from session-start to first frame emitted | p99 ≤ 2 s | per-session |
+| Per-stage latency | Each helix-pipeline stage within Phase_04 relaxed budget | 100% | per-session |
+| Encode-to-transport handoff | Time from encoder emit to transport send | p999 ≤ 1 ms | per-frame |
+| Transport packet loss | Per-session packet-loss rate | < 0.1% | per-session |
+| Session continuity | Sessions completing without reconnect | ≥ 99.5% | 30-day rolling |
+| ABR adaptation latency | Time from network degradation to rate adjustment | p99 ≤ 1 s | per-event |
+
+---
+
+## 13. Per-Phase Operator Runbook
+
+`HelixDevelopment/HelixPipeline/docs/runbook/phase04-operations.md` — covers per-region pipeline deployment, ABR tuning per Phase_04 P04.T07, transport WebRTC vs custom-UDP fallback, codec capability negotiation, end-to-end smoke probe execution.
+
+---
+
+## 14. Implementation Considerations
+
+### 14.1 Phase_04 vs Phase_07 latency targets
+
+Phase_04 targets relaxed p999 ≤ 25 ms (smoke target); Phase_07 takes the floor to ≤ 8 ms. Per-stage budgets are documented in S05 §9.2 budget tables; Phase_04 verifies the relaxed envelope is met.
+
+### 14.2 Codec selection (H.264 vs HEVC vs AV1)
+
+Per [C26 §6](../05_Video_Audio/01_Codec_Selection.md): H.264 baseline (universal); HEVC for HDR + bandwidth efficiency; AV1 for next-gen. Per-client capability negotiation drives selection.
+
+### 14.3 Transport WebRTC vs custom-UDP
+
+Per [C37 §9](../05_Video_Audio/06_Network_Transport.md): WebRTC is the canonical default (firewall-traversal + STUN/TURN/ICE); custom-UDP for operator-LAN-only deployments where WebRTC overhead is undesirable.
+
+### 14.4 ABR aggressiveness tuning
+
+Per [helix-abr §2](../06_Submodules/per-submodule/helix-abr.md). Operator-tunable: `abr_aggressiveness=0.5..1.0`. Conservative (0.5) avoids quality oscillation; aggressive (1.0) maximizes per-frame quality.
+
+---
+
+## 15. Phase_04 Cost Estimation
+
+Per-tenant Phase_04 cost (4K60 baseline):
+
+| Component | Per-Tenant Per-Hour |
+|-----------|---------------------|
+| GPU encode (HEVC 4K60 ~25 Mbps) | ~$0.50 (operator-amortised hardware) |
+| Bandwidth egress (~25 Mbps × 3,600 s = ~11 GB/hour) | ~$0.90 (operator's transit) |
+| **Total per-tenant per-hour** | **~$1.40** |
+
+Per-tier pricing model in Phase_10 P10.T04 amortises this baseline.
+
+---
+
+## 16. Cross-Mirror Parity Verification
+
+Phase_04 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Replay.md#16-cross-mirror-parity-verification) pattern.
+
+---
+
+## 17. Anti-Bluff Verification
 
 ### 11.1 Sources resolved
 

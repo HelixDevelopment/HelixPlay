@@ -151,7 +151,7 @@ Operator + UX review per Constitution §16. UX review is non-trivial — per [C1
 
 ## 5. Subtask Catalogue
 
-60 subtasks across 13 tasks; bulk-imported.
+60 subtasks across 13 tasks; per-task discrete `[P05.Tyy.Szz]` tickets per [O05](../08_Operations/05_Tracking_GitHub_GitLab.md). Sub-categories: Wails desktop client (T01..T05); Compose-for-TV client (T06..T09); Steam Deck client (T10..T12); cross-cutting acceptance (T13). Each subtask carries: function entry-point + verification probe + observability emission + Challenges scenario reference. Detailed enumeration tracks alongside per-task PRs in operator's project boards.
 
 ---
 
@@ -213,7 +213,86 @@ Constitution §16 signoff + §6 exit criteria.
 
 ---
 
-## 11. Anti-Bluff Verification
+## 11. Per-Phase Observability Catalogue
+
+### 11.1 Prometheus metrics
+
+| Metric | Type | Labels | SLO Target |
+|--------|------|--------|------------|
+| `helix_client_session_start_seconds` | histogram | client_type, region | p99 ≤ 5 s |
+| `helix_client_first_frame_seconds` | histogram | client_type, region | p99 ≤ 3 s |
+| `helix_client_input_to_photons_ms` | histogram | client_type, tenant | p999 per Phase_07 |
+| `helix_client_codec_negotiation_total` | counter | client_type, codec | per-session |
+| `helix_client_reconnect_total` | counter | client_type, reason | < 1 / hour |
+| `helix_client_crash_total` | counter | client_type, os | < 1 / 1000 sessions |
+| `helix_client_audio_loss_total` | counter | client_type | 0 (audit) |
+
+### 11.2 Grafana dashboards
+
+- **Per-client-type Health** — Wails / Compose-for-TV / Steam Deck per-version session metrics.
+- **Per-region Latency by Client** — p999 input-to-photons stratified by client type.
+- **Per-codec adoption** — H.264 / HEVC / AV1 distribution per client type.
+- **Per-launcher integration** — Steam OAuth flow + game-ownership API latency.
+
+---
+
+## 12. Per-Phase SLI / SLO Definitions
+
+| SLI | Definition | SLO Target | Window |
+|-----|------------|------------|--------|
+| Client session-start | First frame rendered after client launch | p99 ≤ 5 s | per-session |
+| Wails desktop crash rate | Crashes per 1,000 sessions | < 1 | 7-day rolling |
+| Compose-for-TV focus latency | Focus-target action response | p99 ≤ 100 ms | per-action |
+| Steam Deck thermal envelope | Sustained 25 W operation | ≥ 99% sessions | 30-day rolling |
+| Per-launcher OAuth success | Steam/GOG/Epic/Battle.net OAuth flow completion | ≥ 99% | 7-day rolling |
+| Auto-update adoption | Clients on latest version | ≥ 90% within 48 h | per-release |
+
+---
+
+## 13. Per-Phase Operator Runbook
+
+`HelixDevelopment/HelixClients/docs/runbook/phase05-operations.md` covering Wails per-OS deployment, Compose-for-TV Play Store + Amazon Appstore submission, Steam Deck thermal calibration, per-launcher OAuth troubleshooting, client-side crash log triage (Sentry-mirrored to operator's SIEM), per-client auto-update mirror configuration.
+
+---
+
+## 14. Implementation Considerations
+
+### 14.1 Wails v2 vs Tauri-Go
+
+Wails v2 is the canonical desktop client (per [C05 OQ-01 closure](../03_Architecture/04_Clients_and_App_Architecture.md)). Tauri-Go is queued as Phase 2 alternative; not in MVP scope.
+
+### 14.2 Compose-for-TV vs Flutter
+
+Compose-for-TV `androidx.tv.material3` 1.0 GA is the canonical Android-TV path (per [C12 MC-05 closure](../03_Architecture/11_TV_UX.md)). Flutter is fallback; not in MVP scope. Leanback is deprecated via 2026-08-31 64-bit Play Store mandate.
+
+### 14.3 Steam Deck thermal envelope
+
+25 W sustained operation per [C34 §6](../05_Video_Audio/04_DualPath_Encoding.md). Per-game thermal profile auto-calibrated; user-overridable via Steam Deck Quick Access Menu integration.
+
+### 14.4 Per-launcher OAuth quirks
+
+- Steam: standard OAuth + Web API key per-tenant.
+- GOG: GalaxyAPI + per-user opt-in.
+- Epic: EOS SDK + Bearer token.
+- Battle.net: URI-broken since 2024 (per Z-3 in C08 §9 addendum) — per-game launcher fallback.
+
+---
+
+## 15. Phase_05 Cost Estimation
+
+Phase_05 ships **client-side software** — operator's per-tenant cost is zero incremental (clients are free downloads).
+
+Operator's app-store fees: Apple App Store + Google Play (Compose-for-TV) per-app-listing fee + 15-30% revenue share (per Phase_10 monetization model). Steam: free for self-distribution.
+
+---
+
+## 16. Cross-Mirror Parity Verification
+
+Phase_05 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Replay.md#16-cross-mirror-parity-verification) pattern.
+
+---
+
+## 17. Anti-Bluff Verification
 
 ### 11.1 Sources resolved
 

@@ -148,8 +148,8 @@ home of **HC-06** (`latency_cross_verification.md` lines 38–43 —
 DPDK 15 µs tail latency vs ~40 µs kernel; ≥ 1 M pps per core;
 XDP at 24 Mpps per core), reaffirmed by 2026 evidence with the
 small refinement that Sapphire Rapids + Mellanox ConnectX-7 hardware
-moved the DPDK tail-latency floor closer to 8–12 µs (cite addendum
-cluster TBD-by-orchestrator; the §3 table records the 2026 number
+moved the DPDK tail-latency floor closer to 8–12 µs (cite [`99_Web_Research_Addenda/2026-04-29-ultralowlatency-network-protocols.md`](../../99_Web_Research_Addenda/2026-04-29-ultralowlatency-network-protocols.md)
+addendum clusters; the §3 table records the 2026 number
 alongside the 2024 baseline so the audit trail keeps both visible).
 **Insight #1** (`latency_insight.md` lines 1–17 — the Microwave
 Pipeline) is the load-bearing architectural insight: this chapter
@@ -493,7 +493,7 @@ specific error the reset path observes.
 The streaming hot path emits FEC repair packets per the schedule
 C13 §6 specifies (Reed-Solomon for low-overhead recovery in MVP;
 RaptorQ tracked for the V1 swap once Go bindings stabilise — cite
-C13 §6 + addendum cluster TBD-by-orchestrator). When the receiver
+[C13 §6](../03_Architecture/12_Latency_Engineering_Overview.md) + [`99_Web_Research_Addenda/2026-04-29-ultralowlatency-network-protocols.md`](../../99_Web_Research_Addenda/2026-04-29-ultralowlatency-network-protocols.md) FEC clusters). When the receiver
 detects loss (sequence-number gap in the framing header) it
 **reconstructs** the lost packet from the FEC group, not by asking
 the sender to retransmit; if reconstruction fails (loss exceeds

@@ -314,7 +314,81 @@ The Phase_12 calendar is **gated by the 30-day green window** — any single tes
 
 ---
 
-## 11. Anti-Bluff Verification
+## 11. Per-Phase Observability Catalogue
+
+### 11.1 Prometheus metrics
+
+| Metric | Type | Labels | SLO Target |
+|--------|------|--------|------------|
+| `helix_beta_customer_active_count` | gauge | region | per-region beta count |
+| `helix_beta_session_count` | counter | tenant | per-tenant session rate |
+| `helix_beta_30day_green_window_days` | gauge | — | counter resets on FAIL |
+| `helix_dr_drill_rpo_seconds` | gauge | region | ≤ 60 |
+| `helix_dr_drill_rto_seconds` | gauge | region | ≤ 900 |
+| `helix_capacity_headroom_percent` | gauge | region | ≥ 30 |
+| `helix_per_tenant_sla_breach_total` | counter | tenant, sli | 0 |
+
+### 11.2 Grafana dashboards
+
+- **Per-customer Beta Health** — usage + SLA status + feedback ticket count per beta customer.
+- **Capacity Planning** — per-region utilisation + headroom + auto-scale rate.
+- **30-day Green Window Counter** — daily green-streak indicator.
+- **DR Drill Status** — per-region last-drill date + RPO + RTO.
+
+---
+
+## 12. Per-Phase SLI / SLO Definitions
+
+| SLI | Definition | SLO Target | Window |
+|-----|------------|------------|--------|
+| Beta customer SLA adherence | Per-customer SLA met | 100% | 30-day rolling |
+| 30-day green window | Consecutive days of green Challenges + Smoke + Stress + Chaos | 30 days | continuous |
+| DR drill RPO | Region-failover data-loss window | ≤ 1 minute | per-drill |
+| DR drill RTO | Region-failover recovery time | ≤ 15 minutes | per-drill |
+| Capacity headroom | Per-region utilisation budget | ≥ 30% headroom | continuous |
+| Customer success ticket SLA | First-response time | ≤ 4 hours | per-ticket |
+
+---
+
+## 13. Per-Phase Operator Runbook
+
+`HelixDevelopment/HelixOps/docs/runbook/phase12-beta-launch.md` covering beta customer onboarding, dedicated support channel setup, performance baseline establishment, capacity planning, DR drill execution, 30-day green window enforcement.
+
+---
+
+## 14. Implementation Considerations
+
+### 14.1 30-day green window resets
+
+Any single FAIL in any nightly suite resets the counter. Per RP12-02 mitigation: per-test flakiness budget (≤ 1%) + flaky-test quarantine.
+
+### 14.2 Per-customer feedback channel
+
+Dedicated Slack Connect or Teams per customer; monthly review meeting cadence. Operator's customer-success team owns triage.
+
+### 14.3 DR drill scope
+
+Per-region failover with full data preservation verification. RP12-03 mitigation: pre-drill replication audit + remediation.
+
+### 14.4 Per-customer GDPR drill
+
+EU-jurisdictional beta customer with synthetic erasure request (with consent). Per Phase_12 P12.T13.
+
+---
+
+## 15. Phase_12 Cost Estimation
+
+Beta-stage operational cost: ~$2,000 / month / region for capacity headroom + DR drill resources. Per-customer support tooling: operator-side already deployed in Phase_05/Phase_06.
+
+---
+
+## 16. Cross-Mirror Parity Verification
+
+Phase_12 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Replay.md#16-cross-mirror-parity-verification) pattern.
+
+---
+
+## 17. Anti-Bluff Verification
 
 ### 11.1 Sources resolved
 

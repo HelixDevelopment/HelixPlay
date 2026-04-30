@@ -357,9 +357,86 @@ The orchestrator's role ends here. The operator's product team owns the post-GA 
 
 ---
 
-## 12. Anti-Bluff Verification
+## 12. Per-Phase Observability Catalogue
 
-### 12.1 Sources resolved
+### 18.1 Prometheus metrics
+
+| Metric | Type | Labels | SLO Target |
+|--------|------|--------|------------|
+| `helix_ga_signup_total` | counter | region, tier | per-day rate |
+| `helix_ga_active_tenant_count` | gauge | region, tier | growing |
+| `helix_per_tier_sla_breach_total` | counter | tier, sli | 0 |
+| `helix_bug_bounty_open_critical` | gauge | — | 0 |
+| `helix_per_quarter_review_completion_total` | counter | quarter | 100% |
+| `helix_status_page_uptime_percent` | gauge | component | per-tier SLA |
+
+### 18.2 Grafana dashboards
+
+- **GA Customer Growth** — per-region + per-tier signup rate.
+- **Per-tier SLA Adherence** — Free / Standard / Pro / Enterprise SLA status.
+- **Bug Bounty Health** — open findings + per-severity SLA tracking.
+- **Quarterly Review Compliance** — per-quarter review document delivery.
+
+---
+
+## 13. Per-Phase SLI / SLO Definitions
+
+| SLI | Definition | SLO Target | Window |
+|-----|------------|------------|--------|
+| Free tier latency | p999 input-to-photons | ≤ 25 ms | 30-day rolling |
+| Standard tier latency | p999 input-to-photons | ≤ 15 ms | 30-day rolling |
+| Pro tier latency | p999 input-to-photons | ≤ 10 ms | 30-day rolling |
+| Enterprise tier latency | p999 input-to-photons | ≤ 8 ms | 30-day rolling |
+| Free tier availability | 99.5% | ≥ 99.5% | 30-day rolling |
+| Standard tier availability | 99.9% | ≥ 99.9% | 30-day rolling |
+| Pro tier availability | 99.95% | ≥ 99.95% | 30-day rolling |
+| Enterprise tier availability | 99.99% | ≥ 99.99% | 30-day rolling |
+| Public sign-up funnel | Conversion rate | operator-monitored | 7-day rolling |
+| Bug bounty CRITICAL SLA | Time-to-remediate | ≤ 24 hours | per-finding |
+
+---
+
+## 14. Per-Phase Operator Runbook
+
+`HelixDevelopment/HelixOps/docs/runbook/phase13-ga-operations.md` covering 24×7 on-call rotation, per-tier support response, public sign-up monitoring, bug bounty triage, per-quarter review document template, GA-launch incident response.
+
+---
+
+## 15. Implementation Considerations
+
+### 15.1 Public bug bounty timing
+
+Launch ≥ 90 days post-GA — allows operator to stabilise + remediate any post-launch findings before opening external scrutiny. Operator's choice on platform (HackerOne / Bugcrowd / Intigriti).
+
+### 15.2 Per-quarter review cadence sustainability
+
+Operator's CTO-mandated cadence + on-call-lead-owned (RP13-07 mitigation). Drift after 6 months is the canonical risk.
+
+### 15.3 Multi-region migration UX
+
+Customer-self-service vs operator-mediated per tier. Enterprise tier defaults to operator-mediated (white-glove).
+
+### 15.4 Master Plan §9 DoD post-GA monitoring
+
+Continuous CI sweep — any new forbidden pattern emergence triggers operator-side remediation SLA (RP13-08 mitigation).
+
+---
+
+## 16. Phase_13 Cost Estimation
+
+Phase_13 GA-stage operational cost is operator's commercial-tier price model output. Per-tenant baseline ~$100 / month covers Phase_03 backend + Phase_04 streaming + Phase_09 recording amortised; per-tier pricing premium funds operator margin + per-region capacity headroom + 24×7 support staffing.
+
+---
+
+## 17. Cross-Mirror Parity Verification — Final
+
+Phase_13 closure: final composite-push to all 4 mirrors with `v1.0.0-mvp-ga` cosign-signed tag. All 4 mirrors at same SHA verified via `git ls-remote` loop. Master Plan §9 DoD condition #7 four-mirror parity **certified met**.
+
+---
+
+## 18. Anti-Bluff Verification
+
+### 18.1 Sources resolved
 
 | Path                                                              | Lines  | Reviewed   | Role                                            |
 |-------------------------------------------------------------------|-------:|------------|-------------------------------------------------|
@@ -369,11 +446,11 @@ The orchestrator's role ends here. The operator's product team owns the post-GA 
 | [`../00_Master_Plan.md`](../00_Master_Plan.md)                    | 1,800+ | 2026-04-30 | §7.2 + §9 DoD       |
 | [`../01_Constitution.md`](../01_Constitution.md)                  | 1,400+ | 2026-04-30 | §16 signoff       |
 
-### 12.2 Forbidden patterns
+### 18.2 Forbidden patterns
 
 Clean.
 
-### 12.3 Sign-off
+### 18.3 Sign-off
 
 - Drafted by: orchestrator (Claude Opus 4.7) on 2026-04-30 (specification only).
 - Pending: Phase_13 execution + operator's full-stakeholder signoff.

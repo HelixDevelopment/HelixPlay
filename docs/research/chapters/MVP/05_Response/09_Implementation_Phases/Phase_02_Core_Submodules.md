@@ -281,9 +281,76 @@ Operator signoff per Constitution §16 + the §6 exit criteria.
 
 ---
 
-## 11. Anti-Bluff Verification
+## 11. Per-Phase Observability Catalogue
 
-### 11.1 Sources resolved
+The Phase_02 deployment exposes per-submodule deployment-stage metrics; per [S01 §9](../06_Submodules/01_Submodule_Catalog.md):
+
+### 11.1 Aggregate Prometheus metrics
+
+| Metric | Type | Labels | SLO Target |
+|--------|------|--------|------------|
+| `helix_submodule_graduation_status` | gauge | submodule, version | 1.0.0 = graduated |
+| `helix_submodule_test_pass_rate` | gauge | submodule, test_type | 100% |
+| `helix_submodule_coverage_percent` | gauge | submodule | ≥ 95% (Unit), 100% (E2E) |
+| `helix_submodule_v1_release_total` | counter | submodule | per graduation |
+| `helix_submodule_dependency_resolution_seconds` | histogram | submodule | per-build |
+
+### 11.2 Per-cohort progress dashboard
+
+Operator-visible Grafana dashboard tracks per-cohort graduation: Cohort A (Architecture-family) → B (Latency depth-1) → C (Latency depth-2 + V/A depth-1) → D (composite) → E (closure).
+
+---
+
+## 12. Per-Phase SLI / SLO Definitions
+
+| SLI | Definition | SLO Target | Window |
+|-----|------------|------------|--------|
+| Per-submodule v1.0.0 | Graduation criteria met per [S01 §9.2](../06_Submodules/01_Submodule_Catalog.md#92-the-v100-graduation-criteria) | 100% | per-submodule |
+| Test coverage | Per-submodule Unit ≥ 95%, others 100% | 100% | per-submodule |
+| Cross-submodule contract | API contract test green | 100% | per-cohort |
+| Forbidden-pattern scan | Zero forbidden patterns | 100% | per-PR |
+| Dual SBOM emission | cyclonedx-gomod + syft clean | 100% | per-release |
+| Cosign + SLSA L3 | Per-release attestation | 100% | per-release |
+
+---
+
+## 13. Per-Phase Operator Runbook
+
+`HelixDevelopment/HelixOps/docs/runbook/phase02-submodule-graduation.md` covering per-cohort graduation procedure, per-submodule v1.0.0 release-train cadence, helix-r18-safeexec SPOF mitigation, per-submodule docker-compose smoke environment.
+
+---
+
+## 14. Implementation Considerations
+
+### 14.1 helix-r18-safeexec graduates first
+
+helix-r18-safeexec is the SPOF root — 24 of 29 submodules import it. Must graduate v1.0.0 before any consumer can graduate. Per [S01 §6.2](../06_Submodules/01_Submodule_Catalog.md) SPOF analysis.
+
+### 14.2 Dependency-depth ordering
+
+Cohort A → B → C → D → E reflects dependency depth. Within a cohort, parallel work is allowed.
+
+### 14.3 Per-submodule v1.0.0 graduation criteria
+
+Per [S01 §9.2](../06_Submodules/01_Submodule_Catalog.md#92-the-v100-graduation-criteria): all 10 test types green; cosign + SLSA L3; dual SBOM; forbidden-pattern clean; per-mirror parity; operator review.
+
+---
+
+## 15. Phase_02 Cost Estimation
+
+Engineering effort: 29 submodules × ~2 weeks each (parallelisable per cohort). Operator capacity: 6-8 engineers across 5 cohorts. CI cost reduced ~10× with GOCACHEPROG (Phase_07 P07.T10).
+
+---
+
+## 16. Cross-Mirror Parity Verification
+
+Phase_02 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Replay.md#16-cross-mirror-parity-verification) pattern. Per-submodule four-mirror parity verified at each v1.0.0 graduation tag.
+
+---
+
+## 17. Anti-Bluff Verification
+
+### 17.1 Sources resolved
 
 | Path                                                              | Lines  | Reviewed   | Role                                            |
 |-------------------------------------------------------------------|-------:|------------|-------------------------------------------------|
@@ -293,11 +360,11 @@ Operator signoff per Constitution §16 + the §6 exit criteria.
 | [`../07_Testing/`](../07_Testing/)                                |  4,533 | 2026-04-30 | test discipline                                  |
 | [`../08_Operations/`](../08_Operations/)                          |  2,315 | 2026-04-30 | operational machinery                            |
 
-### 11.2 Forbidden patterns
+### 17.2 Forbidden patterns
 
 Clean.
 
-### 11.3 Sign-off
+### 17.3 Sign-off
 
 - Drafted by: orchestrator (Claude Opus 4.7) on 2026-04-30 (specification only).
 - Pending: Phase_02 execution + operator signoff.

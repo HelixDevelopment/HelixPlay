@@ -335,7 +335,83 @@ The Phase_10 calendar slots align with the operator's commercial agreement signi
 
 ---
 
-## 11. Anti-Bluff Verification
+## 11. Per-Phase Observability Catalogue
+
+### 11.1 Prometheus metrics
+
+| Metric | Type | Labels | SLO Target |
+|--------|------|--------|------------|
+| `helix_oauth_token_issuance_total` | counter | tenant, provider | per-session |
+| `helix_oauth_refresh_replay_total` | counter | tenant | 0 (replay = compromise) |
+| `helix_mfa_challenge_total` | counter | tenant, method | per-tier policy |
+| `helix_billing_charge_total` | counter | tenant, gateway, currency | per-billing-cycle |
+| `helix_billing_refund_total` | counter | tenant, gateway | < 1% |
+| `helix_billing_chargeback_total` | counter | tenant, gateway | < 0.5% |
+| `helix_session_seat_count` | gauge | tenant | per-tenant seat limit |
+| `helix_audit_log_chain_break_total` | counter | tenant | 0 (alarm) |
+| `helix_gdpr_erasure_pending_days` | gauge | tenant | < 25 |
+
+### 11.2 Grafana dashboards
+
+- **Per-tenant Billing Health** — charges + refunds + chargebacks + reconciliation status.
+- **Per-gateway Latency** — Stripe / Adyen / YooKassa / Razorpay / Alipay+WeChat per-region.
+- **Audit Log Integrity** — chain-break alarms + cosign verification.
+- **GDPR Compliance** — pending erasures + per-tenant retention compliance.
+
+---
+
+## 12. Per-Phase SLI / SLO Definitions
+
+| SLI | Definition | SLO Target | Window |
+|-----|------------|------------|--------|
+| OAuth + OIDC availability | Per-tenant auth flow completion | ≥ 99.9% | 30-day rolling |
+| MFA enforcement | Operator + admin tier MFA rate | 100% | per-login |
+| Payment gateway availability | Per-region gateway success rate | ≥ 99.5% | 30-day rolling |
+| Audit log integrity | Cosign chain unbroken | 100% | per-event |
+| GDPR erasure SLA | Time from request to certificate | ≤ 30 days | per-request |
+| Reconciliation accuracy | Daily reconciliation discrepancy | < 0.1% | daily |
+
+---
+
+## 13. Per-Phase Operator Runbook
+
+`HelixDevelopment/HelixBilling/docs/runbook/billing-operations.md` covering tenant onboarding, dispute response, refund workflow, anti-fraud tuning, GDPR erasure response (per Phase_10 P10.T15).
+
+---
+
+## 14. Implementation Considerations
+
+### 14.1 Multi-gateway fallback
+
+Per region, primary + fallback gateway (e.g., EU: Adyen primary, Stripe fallback). RP10-01 mitigation. Per-tenant gateway selection at first-charge.
+
+### 14.2 OAuth 2.1 single-use refresh tokens
+
+Refresh-token replay = compromise (RP10-04). Chain-revocation on detected replay. Per [helix-tenant §6.1](../06_Submodules/per-submodule/helix-tenant.md).
+
+### 14.3 Per-jurisdiction tax compliance
+
+Per-region tax-period boundaries vary (quarterly + annual + different fiscal-year start dates). Operator's commercial team owns per-jurisdictional tax registration.
+
+### 14.4 Cross-tenant migration jurisdictional checks
+
+EU tenant cannot migrate to US operator without GDPR DPA in place. Per Phase_10 P10.T09 + RP10-08.
+
+---
+
+## 15. Phase_10 Cost Estimation
+
+Per-tenant per-month Phase_10 cost: ~$0.50 (Keycloak + Vault namespace overhead) + 2.9% + $0.30 per transaction (Stripe / Adyen baseline).
+
+---
+
+## 16. Cross-Mirror Parity Verification
+
+Phase_10 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Replay.md#16-cross-mirror-parity-verification) pattern.
+
+---
+
+## 17. Anti-Bluff Verification
 
 ### 11.1 Sources resolved
 

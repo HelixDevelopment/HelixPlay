@@ -364,7 +364,87 @@ The Phase_11 calendar is **non-compressible** — external pentest engagement ti
 
 ---
 
-## 11. Anti-Bluff Verification
+## 11. Per-Phase Observability Catalogue
+
+### 11.1 Prometheus metrics
+
+| Metric | Type | Labels | SLO Target |
+|--------|------|--------|------------|
+| `helix_r18_safeexec_violation_total` | counter | tenant, command | 0 (alarm) |
+| `helix_forbidden_pattern_match_total` | counter | tenant, pattern | 0 (alarm) |
+| `helix_owasp_asvs_score_percent` | gauge | tenant | ≥ 100% L2 |
+| `helix_cis_benchmark_score_percent` | gauge | image | ≥ 90% |
+| `helix_pentest_findings_critical` | gauge | tenant | 0 |
+| `helix_cve_open_critical` | gauge | submodule | 0 |
+| `helix_cve_open_high` | gauge | submodule | 0 |
+| `helix_sonarqube_grade` | gauge | submodule | A |
+| `helix_cosign_verify_failure_total` | counter | artifact | 0 |
+| `helix_secret_rotation_overdue_total` | gauge | secret | 0 |
+| `helix_tls_handshake_failures_total` | counter | endpoint | < 0.1% |
+| `helix_ddos_blocked_total` | counter | tenant | per-attack-event |
+
+### 11.2 Grafana dashboards
+
+- **Security Posture** — R-18 violations + forbidden patterns + CVE burndown + OWASP ASVS score.
+- **Audit Log Integrity** — cosign verification across helix-billing + helix-tenant + helix-vault audit logs.
+- **Secret Rotation Status** — per-secret rotation cadence compliance.
+- **TLS / ECH / PQ-hybrid** — per-endpoint protocol distribution.
+
+---
+
+## 12. Per-Phase SLI / SLO Definitions
+
+| SLI | Definition | SLO Target | Window |
+|-----|------------|------------|--------|
+| R-18 wrap coverage | Subprocess invocations wrapped | 100% | per-deploy |
+| Forbidden-command zero-tolerance | Source + image + runtime sweep | 0 matches | per-PR |
+| OWASP ASVS L2 | All 286 checks passed | 100% | per-release |
+| CRITICAL + HIGH CVE remediation | Open count | 0 | continuous |
+| Cosign + SLSA L3 attestation | Per-artifact | 100% | per-release |
+| Secret rotation cadence | Per-secret rotation on schedule | 100% | per-secret |
+| Pentest re-test | Findings remediated + re-tested | 100% must-fix | per-engagement |
+
+---
+
+## 13. Per-Phase Operator Runbook
+
+`HelixDevelopment/HelixOps/docs/runbook/incident-response.md` (per Phase_11 P11.T16) covering: secret leak, container compromise, payment-gateway breach, GDPR data leak, R-18 violation. Quarterly tabletop drill.
+
+---
+
+## 14. Implementation Considerations
+
+### 14.1 External pentest scheduling
+
+8 weeks before beta launch — buffer for remediation per RP11-01.
+
+### 14.2 helix-r18-safeexec exception register
+
+Operator-mediated; compliance-officer-signed. Per RP11-02 mitigation.
+
+### 14.3 Cosign keyless rotation
+
+Sigstore-Fulcio short-lived certs eliminate key compromise risk (RP11-05). Operator's optional self-managed key fallback for air-gapped.
+
+### 14.4 Kyber + X25519 hybrid interop
+
+Not all clients support Kyber768 yet (RP11-07). Per-client capability negotiation; X25519-only fallback during grace period.
+
+---
+
+## 15. Phase_11 Cost Estimation
+
+External pentest engagement: ~$50,000-150,000 (per pentest firm + scope). Per-quarter re-test budget: ~$20,000. SonarQube + Snyk subscriptions: operator-side commercial.
+
+---
+
+## 16. Cross-Mirror Parity Verification
+
+Phase_11 closure verification per the [Phase_09 §16](Phase_09_Recording_and_Replay.md#16-cross-mirror-parity-verification) pattern. Final pentest report cosign-signed + archived in operator's compliance repository.
+
+---
+
+## 17. Anti-Bluff Verification
 
 ### 11.1 Sources resolved
 

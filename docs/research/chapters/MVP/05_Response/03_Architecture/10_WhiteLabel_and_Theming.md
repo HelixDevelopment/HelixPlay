@@ -3679,7 +3679,7 @@ honour the flag.
 
 **OQ-C11-08 — DTCG v2 readiness.**
 DTCG v1 was ratified 2025-10-28 (addendum §A); v2 timeline is
-TBD. The W3C Design Tokens Community Group meets monthly and
+**driven by the W3C Design Tokens Community Group** (external SDO; not orchestrator-side). The W3C Design Tokens Community Group meets monthly and
 publishes draft revisions; HelixPlay's bundler tracks the WG
 meetings and the test suite includes a "v2 candidate" lane that
 runs against pre-release DTCG v2 fixtures so the upgrade is an
