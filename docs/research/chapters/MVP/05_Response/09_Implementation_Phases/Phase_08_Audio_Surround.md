@@ -176,6 +176,43 @@ Constitution §16 + §6 exit criteria.
 
 ---
 
+## 10a. Per-Phase Detailed Task Acceptance Criteria
+
+### 10a.1 Atmos 7.1.4 acceptance (P08.T01)
+
+- Opus MultiStream encoder configured for 12-channel layout (L/R/C/LFE/Ls/Rs/Lrs/Rrs/Tfl/Tfr/Tbl/Tbr) with explicit channel-map signaling.
+- 768 kbps bitrate target verified via `helix_audio_opus_bitrate_kbps` gauge.
+- Channel-map matches the Atmos canonical layout per [helix-audio §9.1](../06_Submodules/per-submodule/helix-audio.md#91-configuration-knobs).
+- Per-channel SNR measurement ≥ 92 dB (audio fidelity floor).
+
+### 10a.2 HDMI 2.1 eARC acceptance (P08.T02 + P08.T03)
+
+- helix-audio.SignalEARC InfoFrame emission verified at session start; receiver acknowledgement via HDMI CDC observed within 200 ms.
+- ALLM (Auto Low-Latency Mode) negotiation verified via helix-display.SignalALLM; receiver enters game-mode within 1 s.
+- Per-receiver-model quirks register populated for known HDMI 2.1 receivers (Denon AVR-X6700H, Sony A95K, LG OLED48C2, Samsung Q990C, etc.).
+- Fallback to ARC (compressed-only Atmos) on eARC-incapable receivers verified.
+
+### 10a.3 HDR10 + HDR10+ + DV acceptance (P08.T05 + P08.T06 + P08.T07)
+
+- HDR10 SEI emitted per-frame with MaxCLL + MaxFALL values; verifiable via FFprobe SEI dump.
+- HDR10+ ST 2094-40 dynamic metadata emitted per-scene + per-shot per HDR10+ specification; ST 2094-40 conformance test green.
+- DV Profile 8.4 RPU pass-through verified by client-side DV decoder (LG OLED + Sony BRAVIA reference).
+- DV-to-HDR10 fallback verified on non-DV displays.
+
+### 10a.4 Client-side tone-mapping acceptance (P08.T08)
+
+- helix-hdr.ToneMapper Strategy=BT2390 active on SDR-only displays.
+- 4K frame tone-mapped within 4 ms p999 on Vulkan-capable GPUs (verified via helix-bench).
+- ErrToneMapVulkanInit graceful degradation path tested.
+
+### 10a.5 A/V sync acceptance (P08.T09)
+
+- VMAF score ≥ 90 p10 on rendered frame stream over 5-min session.
+- ViSQOL score ≥ 4.0 p10 on audio stream over 5-min session.
+- Sync drift ≤ 40 ms p999 measured per [T11 §6](../07_Testing/11_Challenges.md) Atmos eARC scenario.
+
+---
+
 ## 11. Per-Phase Observability Catalogue
 
 ### 11.1 Prometheus metrics

@@ -192,6 +192,50 @@ Constitution §16 signoff + §6 exit criteria.
 
 ---
 
+## 10a. Per-Phase Detailed Task Acceptance Criteria
+
+Per-task acceptance criteria expanding §4 task details:
+
+### 10a.1 SCHED_FIFO acceptance (P07.T01)
+
+- All 3 hot-path goroutines (helix-pipeline encoder dispatcher + helix-input controller poll + helix-transport send) verified at SCHED_FIFO priority 50 via `chrt -p $TID`.
+- Per-goroutine TID observable via `runtime.LockOSThread()` + thread-id export → Prometheus `helix_rtos_sched_fifo_tid` gauge.
+- PREEMPT_RT detection probe: helix-rtos.SCHED_FIFOCapability returns true on PREEMPT_RT kernels, false on stock; behaviour adapts per RP07-01.
+- CAP_SYS_NICE container capability granted (per Constitution §11.5.3 named exception).
+
+### 10a.2 CPU isolation acceptance (P07.T02)
+
+- Operator's host kernel cmdline contains `isolcpus=4-7 nohz_full=4-7 rcu_nocbs=4-7`; verified via `cat /proc/cmdline` + automated probe.
+- helix-rtos pins all SCHED_FIFO goroutines to CPUs 4-7 via taskset/cpuset.
+- Per-CPU jitter measurement (cyclictest-equivalent) shows p999 ≤ 30 µs on isolated cores vs ≥ 200 µs on non-isolated.
+
+### 10a.3 GPUDirect acceptance (P07.T03)
+
+- nvidia-peermem kernel module loaded + verified.
+- BIOS Above-4G + ACS-disabled per [helix-gpu-direct §9.4](../06_Submodules/per-submodule/helix-gpu-direct.md) checklist.
+- helix-encoder GPU output → helix-gpu-direct.RegisterRDMA → helix-transport NIC zero-copy path verified.
+- Fallback path (host-bounce) verified on GPUDirect-init failure (RP07-02 mitigation).
+
+### 10a.4 Kernel-bypass acceptance (P07.T04)
+
+- io_uring SQE submission verified for batched UDP sends; Prometheus `helix_iouring_sqe_submitted_total` rate matches frame-rate × sub-frames.
+- AF_XDP zerocopy for high-throughput verified; per-NIC capability detection respects fallback.
+- Standard sendmsg fallback path tested on AF_XDP-incapable NICs.
+
+### 10a.5 Zero-copy verification acceptance (P07.T05)
+
+- runtime/trace capture during 30-second session shows zero `mallocgc` events on hot-path goroutines.
+- helix-shm zero-copy contract verified via [helix-shm §3](../06_Submodules/per-submodule/helix-shm.md) probe.
+- Escape-analysis lint integrated into CI (`go build -gcflags="-m"` outputs scanned for "escapes to heap" on hot-path functions).
+
+### 10a.6 Allocator strict mode acceptance (P07.T06)
+
+- ModeReport active on hot-path goroutines for ≥ 2 release cycles.
+- Zero ModeReport violations across 2 cycles → escalation to ModeStrict gated by operator's compliance officer signoff.
+- ModeStrict enforces panic-on-allocation per [helix-allocator §3](../06_Submodules/per-submodule/helix-allocator.md).
+
+---
+
 ## 11. Per-Phase Observability Catalogue
 
 ### 11.1 Prometheus metrics

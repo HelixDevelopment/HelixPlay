@@ -190,6 +190,41 @@ Constitution §16 signoff + §6 exit criteria.
 
 ---
 
+## 10a. Per-Phase Detailed Task Acceptance Criteria
+
+Per-task acceptance criteria expanding §4 task details:
+
+### 10a.1 Sunshine++ fork acceptance (P06.T01)
+
+- Fork commit hash documented in `HelixDevelopment/HelixAgent/SUNSHINE-FORK-DELTA.md` header.
+- Every `os/exec` call site enumerated + wrapped in `r18.SafeExec(ctx, ...)` per [helix-r18-safeexec §3.1](../06_Submodules/per-submodule/helix-r18-safeexec.md).
+- Audit log integration verified: per-subprocess invocation emits a JSON log line to operator's SIEM index `helix.audit.subprocess.<tenant>`.
+- 90-day rebase ticket auto-created on operator's project board.
+- helix-r18-safeexec-vet lint gates the merge (CI fail-closed on regression).
+
+### 10a.2 Session lifecycle acceptance (P06.T02)
+
+- Session.Start: SessionID returned within 5 s p99; GPU + helix-pipeline + helix-transport provisioned + verified.
+- Session.Pause: encoder state checkpointed to local-buffer queue; gRPC stream cleanly dropped; client receives PAUSE event.
+- Session.Resume: gRPC stream re-established within 2 s p99; encoder reanchored from checkpoint without artifacting.
+- Session.End: graceful teardown; helix-billing event emitted with final session metadata; resources released.
+- Per Constitution §11.5 — every session-disruption potential wrapped + logged + audit-traceable.
+
+### 10a.3 Per-tenant isolation acceptance (P06.T03)
+
+- Cross-tenant access denial verified via Challenges scenario: tenant A admin attempts session.Start in tenant B namespace → returns PermissionDenied + audit log entry.
+- Per-tenant resource quota (cgroup CPU + RAM + GPU + bandwidth) enforced + observable via `helix_host_tenant_resource_usage_*` Prometheus metrics.
+- Per-tenant audit log scoped + retrieval-restricted to tenant + operator.
+
+### 10a.4 helix-r18-safeexec wrapping acceptance (P06.T04)
+
+- helix-r18-safeexec-vet linter scans every Go file in HelixAgent + per-launcher integrations + scripts.
+- Zero direct `exec.Command` / `exec.CommandContext` / `syscall.Exec` / `syscall.ForkExec` calls survive.
+- Exception register entries each carry: file:line, replacement justification, compliance-officer cosign signature, expiry date.
+- CI lane T07.G fail-closed on direct-exec match.
+
+---
+
 ## 11. Per-Phase Observability Catalogue
 
 ### 11.1 Prometheus metrics
