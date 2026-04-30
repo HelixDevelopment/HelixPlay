@@ -39,21 +39,23 @@ Per [Master Plan §3](../00_Master_Plan.md#3-output-structure) + §7.2:
 
 | ID  | Chapter                                          | Floor (lines) | Status     |
 |-----|--------------------------------------------------|--------------:|------------|
-| —   | [`00_Phase_Index.md`](00_Phase_Index.md) — this file | navigation     | **draft**  |
-| P00 | [`Phase_00_Foundation.md`](Phase_00_Foundation.md)   | 800           | pending    |
-| P01 | [`Phase_01_Containers_and_CI.md`](Phase_01_Containers_and_CI.md) | 500       | pending    |
-| P02 | [`Phase_02_Core_Submodules.md`](Phase_02_Core_Submodules.md)   | 500       | pending    |
-| P03 | [`Phase_03_Backend_Services.md`](Phase_03_Backend_Services.md) | 500       | pending    |
-| P04 | [`Phase_04_Streaming_Pipeline.md`](Phase_04_Streaming_Pipeline.md) | 500    | pending    |
-| P05 | [`Phase_05_Clients.md`](Phase_05_Clients.md)              | 500       | pending    |
-| P06 | [`Phase_06_Host_Agent.md`](Phase_06_Host_Agent.md)        | 500       | pending    |
-| P07 | [`Phase_07_Latency_Optimization.md`](Phase_07_Latency_Optimization.md) | 500 | pending    |
-| P08 | [`Phase_08_Audio_Surround.md`](Phase_08_Audio_Surround.md) | 500       | pending    |
-| P09 | [`Phase_09_Recording_and_Replay.md`](Phase_09_Recording_and_Replay.md) | 500 | pending    |
-| P10 | [`Phase_10_Monetization_and_Auth.md`](Phase_10_Monetization_and_Auth.md) | 500 | pending |
-| P11 | [`Phase_11_Hardening_and_Security.md`](Phase_11_Hardening_and_Security.md) | 500 | pending |
-| P12 | [`Phase_12_Beta_Launch.md`](Phase_12_Beta_Launch.md)      | 500       | pending    |
-| P13 | [`Phase_13_GA.md`](Phase_13_GA.md)                        | 500       | pending    |
+| —   | [`00_Phase_Index.md`](00_Phase_Index.md) — this file | navigation     | **draft v2** |
+| P00 | [`Phase_00_Foundation.md`](Phase_00_Foundation.md)   | 800 / **799 actual (≈100%)** | **draft** — pending floor extension |
+| P01 | [`Phase_01_Containers_and_CI.md`](Phase_01_Containers_and_CI.md) | 500 / **328 actual (66%)** | **draft** — pending floor extension |
+| P02 | [`Phase_02_Core_Submodules.md`](Phase_02_Core_Submodules.md)   | 500 / **305 actual (61%)** | **draft** — pending floor extension |
+| P03 | [`Phase_03_Backend_Services.md`](Phase_03_Backend_Services.md) | 500 / **222 actual (44%)** | **draft** — pending floor extension |
+| P04 | [`Phase_04_Streaming_Pipeline.md`](Phase_04_Streaming_Pipeline.md) | 500 / **230 actual (46%)** | **draft** — pending floor extension |
+| P05 | [`Phase_05_Clients.md`](Phase_05_Clients.md)              | 500 / **238 actual (48%)** | **draft** — pending floor extension |
+| P06 | [`Phase_06_Host_Agent.md`](Phase_06_Host_Agent.md)        | 500 / **188 actual (38%)** | **draft** — pending floor extension |
+| P07 | [`Phase_07_Latency_Optimization.md`](Phase_07_Latency_Optimization.md) | 500 / **185 actual (37%)** | **draft** — pending floor extension |
+| P08 | [`Phase_08_Audio_Surround.md`](Phase_08_Audio_Surround.md) | 500 / **170 actual (34%)** | **draft** — pending floor extension |
+| P09 | [`Phase_09_Recording_and_Replay.md`](Phase_09_Recording_and_Replay.md) | 500 / **166 actual (33%)** | **draft** — pending floor extension |
+| P10 | [`Phase_10_Monetization_and_Auth.md`](Phase_10_Monetization_and_Auth.md) | 500 / **359 actual (72%)** | **draft** — pending floor extension |
+| P11 | [`Phase_11_Hardening_and_Security.md`](Phase_11_Hardening_and_Security.md) | 500 / **388 actual (78%)** | **draft** — pending floor extension |
+| P12 | [`Phase_12_Beta_Launch.md`](Phase_12_Beta_Launch.md)      | 500 / **337 actual (67%)** | **draft** — pending floor extension |
+| P13 | [`Phase_13_GA.md`](Phase_13_GA.md)                        | 500 / **383 actual (77%)** | **draft** — pending floor extension |
+
+**Family total:** 4,466 lines across 14 phase chapters + index. Per-phase floor compliance is **partial on first-pass** — every phase covers the canonical task / subtask / exit-criteria / risk-register / cross-family-dependency structure, but most phases are below the 500-line floor. A floor-extension pass is queued as a follow-up sweep before operator signoff per [Master Plan §9 Definition of Done](../00_Master_Plan.md#9-definition-of-done) condition #2 (R-01 line-floor). The pragmatic trade-off: ship checkpoint-quality phase chapters now (full structural coverage of all 14 phases) over deferring family closure to chase floor-extensions on every chapter individually. The floor-extension sweep will inflate per-phase content via per-task subtask elaboration + per-risk mitigation deepening + per-acceptance-criteria operator playbook detail.
 
 ---
 
@@ -162,7 +164,8 @@ Index prose scanned: clean.
 ### Sign-off
 
 - Drafted by: orchestrator (Claude Opus 4.7) on 2026-04-30.
-- Pending: Phase_00..Phase_13_GA chapters, each with their own Anti-Bluff block.
+- **Status:** All 14 phase chapters drafted (Phase_00 + Phase_01 + Phase_02 + Phase_03 + Phase_04 + Phase_05 + Phase_06 + Phase_07 + Phase_08 + Phase_09 + Phase_10 + Phase_11 + Phase_12 + Phase_13). Each chapter carries its own §11 Anti-Bluff Verification block.
+- **Pending:** floor-extension sweep on all phase chapters except Phase_00 (which lands at 99% floor); operator + per-phase-stakeholder signoff per Constitution §16.
 - Reviewed by: pending operator review.
 
 End of `09_Implementation_Phases/00_Phase_Index.md` — 2026-04-30.
