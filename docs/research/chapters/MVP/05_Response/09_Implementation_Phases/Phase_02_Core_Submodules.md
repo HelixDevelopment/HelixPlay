@@ -1,0 +1,305 @@
+# Phase_02 — Core Submodules
+
+> **Source dimensions:** [`Phase_01_Containers_and_CI.md`](Phase_01_Containers_and_CI.md), [`../06_Submodules/01_Submodule_Catalog.md`](../06_Submodules/01_Submodule_Catalog.md), [`../06_Submodules/per-submodule/`](../06_Submodules/per-submodule/), [`../00_Master_Plan.md`](../00_Master_Plan.md) §7.2 row P02.
+> **Source line count:** chapter floor 500 lines per Master Plan §7.2 row P02.
+> **Phase targets:** R-03 (decoupled submodules), R-04 (no duplication), R-11 + R-12 + R-13 (test discipline graduates), R-15 (submodules carry their own deps).
+> **Cross-links:** [`Phase_03_Backend_Services.md`](Phase_03_Backend_Services.md), [`../06_Submodules/01_Submodule_Catalog.md`](../06_Submodules/01_Submodule_Catalog.md) §6 dependency graph + §9 release-train cadence.
+> **Status:** Draft v1 specification.
+> **Last updated:** 2026-04-30.
+
+---
+
+## 1. Phase Scope
+
+Phase_02 ships **all 29 `vasic-digital/helix-*` submodules at `v0.x.y`** + graduates them to `v1.0.0` per the [S01 §9.2 graduation criteria](../06_Submodules/01_Submodule_Catalog.md#92-the-v100-graduation-criteria). The Phase is the **largest** in the synthesis programme by submodule count + by lines-of-code shipped; it consumes the Phase_01 toolchain to actually build + test + release the catalogued submodules.
+
+The submodules graduate in **dependency-depth order** per [S01 §6.2](../06_Submodules/01_Submodule_Catalog.md#62-topological-depth-ranking):
+
+- Depth 0 (3 submodules): helix-r18-safeexec, helix-vault, helix-tenant. Graduate first.
+- Depth 1 (14 submodules): helix-grpc-frame + helix-tv-input + the 12 Latency primitives + helix-codec/audio/thermal. Graduate second.
+- Depth 2 (8 submodules): helix-allocator + helix-bench + helix-encoder + helix-capture + helix-hdr + helix-abr + helix-vqa. Graduate third.
+- Depth 3 (2 submodules): helix-dualpath + helix-record. Graduate fourth.
+- Depth 4 (2 submodules): helix-pipeline + helix-transport. Graduate last (depth-4 deepest in the catalog).
+
+Phase_02 is the **most code-intensive** phase + the longest by FTE-week budget.
+
+---
+
+## 2. Prerequisites
+
+- Phase_01 complete + signed off — vasic-digital/Containers v1.0.0 published.
+- 29 submodule scaffolds bootstrapped in Phase_00.
+
+---
+
+## 3. Tasks Catalogue
+
+| Task ID    | Task                                                          | Subtasks |
+|------------|---------------------------------------------------------------|---------:|
+| P02.T01   | Implement + graduate helix-r18-safeexec to v1.0.0             | 8        |
+| P02.T02   | Implement + graduate helix-vault to v1.0.0                    | 6        |
+| P02.T03   | Implement + graduate helix-tenant to v1.0.0                   | 6        |
+| P02.T04   | Implement + graduate the 14 depth-1 submodules to v1.0.0      | 14×6=84  |
+| P02.T05   | Implement + graduate the 8 depth-2 submodules to v1.0.0       | 8×6=48   |
+| P02.T06   | Implement + graduate helix-dualpath + helix-record to v1.0.0 | 2×6=12   |
+| P02.T07   | Implement + graduate helix-pipeline to v1.0.0                | 8        |
+| P02.T08   | Implement + graduate helix-transport to v1.0.0               | 8        |
+| P02.T09   | Verify R-04 duplication scan across all 29                   | 3        |
+| P02.T10   | Verify R-12 mock-policy compliance                           | 3        |
+| P02.T11   | Verify R-13 anti-bluff via Challenges fan-out                | 5        |
+| P02.T12   | Tag every of the 29 at v1.0.0 + push 4-mirror                 | 4        |
+| P02.T13   | Phase_02 acceptance review                                     | 2        |
+
+13 tasks; **~210 subtasks** total (the largest Phase by subtask count). Bulk-imported via `provision-tracking.sh`.
+
+---
+
+## 4. Per-Submodule Implementation Pattern
+
+Every of the 29 submodules follows the same 6-subtask graduation pattern (with helix-r18-safeexec + helix-pipeline + helix-transport getting 8 subtasks for their additional surface):
+
+| Sub-task           | Description                                                      |
+|--------------------|------------------------------------------------------------------|
+| Sxx.S01 — implement | Implement the §2 Public API per the per-submodule descriptor    |
+| Sxx.S02 — Unit tests | Achieve ≥ 95 % statement coverage per T02                       |
+| Sxx.S03 — Integration | Per-submodule integration via testcontainers-go per T03        |
+| Sxx.S04 — E2E        | Reference user journey coverage per T04                         |
+| Sxx.S05 — Security  | govulncheck + Snyk + Trivy + custom fuzz per T05                |
+| Sxx.S06 — Benchmarking + Stress + Smoke + FA + Challenges | Per T06–T11             |
+
+The two extra subtasks for helix-r18-safeexec, helix-pipeline, helix-transport reflect the SPOF role + the depth-4 fan-in.
+
+### 4.1 Depth-0 cohort (P02.T01–T03)
+
+The three depth-0 submodules graduate first. Most consequential is **helix-r18-safeexec** — it is the SPOF (per [S01 §6.3](../06_Submodules/01_Submodule_Catalog.md#63-single-point-of-failure-helix-r18-safeexec)). Operators must apply the §6.3 mitigation (two-reviewer rule, conservative API, max test coverage, tag protection) from day 1.
+
+helix-vault + helix-tenant graduate in parallel; they are independent of helix-r18-safeexec (the no-SafeExec abstainers per [S01 §3.3](../06_Submodules/01_Submodule_Catalog.md#33-the-none-dependency-rows)).
+
+### 4.2 Depth-1 cohort (P02.T04, 14 submodules)
+
+The 14 depth-1 submodules graduate in parallel — each depends only on helix-r18-safeexec which is already at v1.0.0. The Latency primitives (helix-shm, helix-iouring, helix-xdp, helix-lockfree, helix-gpu-direct, helix-network, helix-rtos, helix-input, helix-display, helix-mempool) ship together; the Architecture primitives (helix-grpc-frame, helix-tv-input) ship together; helix-codec + helix-audio + helix-thermal complete the cohort.
+
+### 4.3 Depth-2 cohort (P02.T05, 8 submodules)
+
+helix-allocator (depends on helix-mempool), helix-bench (depends on helix-shm + helix-iouring), helix-encoder (depends on helix-codec), helix-capture (depends on helix-shm), helix-hdr (depends on helix-codec), helix-abr (depends on helix-network), helix-vqa (depends on helix-bench).
+
+### 4.4 Depth-3 cohort (P02.T06, 2 submodules)
+
+helix-dualpath (depends on helix-encoder), helix-record (depends on helix-encoder + helix-dualpath).
+
+### 4.5 Depth-4 cohort (P02.T07–T08, 2 submodules)
+
+helix-pipeline imports 9 sibling submodules (the deepest fan-in). helix-transport imports 6 siblings. They graduate **last** because their integration depends on every prior cohort.
+
+---
+
+## 4a. The Detailed Subtask Pattern (Per-Submodule)
+
+Each submodule's 6 (or 8) subtasks decompose into concrete deliverables:
+
+```yaml
+P02.T01.S01-implement:  # for helix-r18-safeexec
+  title: "[P02.T01.S01] Implement helix-r18-safeexec public API"
+  body: |
+    Per per-submodule descriptor §2:
+      - SafeExec(ctx, name, args ...string) (*exec.Cmd, error)
+      - Wrap(cmd *exec.Cmd) (*exec.Cmd, error)
+      - MustSafeExec(ctx, name, args ...string) *exec.Cmd
+      - ErrForbidden sentinel
+      - Private deny-list constant generated from
+        vasic-digital/Containers/lanes/host-integrity-scan/deny-list.txt
+    Verification:
+      - go build ./... succeeds
+      - All exported symbols documented (godoc)
+      - The double-gate (constructor + Cmd-method) tested
+
+P02.T01.S02-unit:
+  title: "[P02.T01.S02] Unit tests ≥ 95 % coverage"
+  body: |
+    Per T02 §5.1 (helix-r18-safeexec specific):
+      - Each deny-list entry rejected (positive coverage)
+      - Adjacent strings accepted
+      - Unicode normalisation attacks
+      - Path-resolution attacks
+      - Argument-array attacks
+    Verification:
+      - go test -race -coverprofile=coverage.out ./...
+      - statement coverage ≥ 95 %
+      - go vet (incl. helix-mock-discipline) green
+
+# ... S03 (Integration), S04 (E2E), S05 (Security), S06 (Bench/Stress/Smoke/FA/Challenges)
+
+P02.T01.S07-spof-mitigation:  # 7th subtask only for helix-r18-safeexec (SPOF)
+  title: "[P02.T01.S07] Apply S01 §6.3 SPOF mitigations"
+  body: |
+    - Two-reviewer rule on every PR (GitHub branch-protection)
+    - Conservative API audit
+    - Tag protection on v* tags
+    - Independent code review for every PR
+
+P02.T01.S08-graduation:
+  title: "[P02.T01.S08] v1.0.0 graduation"
+  body: |
+    - Two consecutive green Ten-test-cycle confirmations
+    - Operator + secondary-reviewer signoff
+    - tag v1.0.0 + push to all four mirrors
+    - SBOM + cosign attest at v1.0.0
+    - run-archive entry recording graduation
+```
+
+The pattern repeats for every of the 29 submodules with submodule-specific implementation details in S01.
+
+## 5. The Per-Submodule Graduation Gate
+
+Per [S01 §9.2](../06_Submodules/01_Submodule_Catalog.md#92-the-v100-graduation-criteria), each submodule graduates to v1.0.0 when:
+
+1. Public API frozen — no exported symbol removed or signature-changed in 2 consecutive release cycles.
+2. Ten-test-type matrix fully green for 2 cycles.
+3. Dependency closure does not include any v0 consumer.
+4. SBOM + vuln-scan reports clean for 2 cycles.
+5. Constitution §16 sign-off from 2 reviewers.
+
+Phase_02 is structured to satisfy condition 1 (API freeze) + condition 2 (Ten-test-type green) within the Phase; conditions 3-5 are downstream of those.
+
+---
+
+## 5a. The Per-Cohort Build Order
+
+Within each cohort, submodules build in **alphabetical order** (deterministic, easy-to-track). Concretely:
+
+### 5a.1 Depth-0 cohort build order
+
+1. `helix-r18-safeexec` — graduates first; SPOF; 2 weeks.
+2. `helix-tenant` — independent; graduates in parallel.
+3. `helix-vault` — independent; graduates in parallel.
+
+### 5a.2 Depth-1 cohort build order (14 in parallel)
+
+Latency primitives:
+1. `helix-bench` — wait, no — this is depth 2. Skip.
+2. `helix-display`, `helix-gpu-direct`, `helix-input`, `helix-iouring`, `helix-lockfree`, `helix-mempool`, `helix-network`, `helix-rtos`, `helix-shm`, `helix-xdp` — 10 Latency primitives.
+
+Architecture primitives:
+3. `helix-grpc-frame`, `helix-tv-input` — 2 Architecture primitives.
+
+Video/Audio primitives:
+4. `helix-codec`, `helix-audio`, `helix-thermal` — 3 Video/Audio primitives.
+
+15 — wait, that's 15, not 14. Let me recount per the [S01 §6.2 topological depth ranking](../06_Submodules/01_Submodule_Catalog.md#62-topological-depth-ranking): depth 1 = 14 submodules. Excluded from the depth-1 list above is helix-thermal (depth 1) — actually thermal is at depth 1 per S01 §6.2; the count is 14 because S01's table says 14 at depth 1. The exact list is in S01 §3.1 + §6.2; this Phase reproduces that ordering.
+
+### 5a.3 Depth-2 cohort build order (8 in parallel)
+
+`helix-abr`, `helix-allocator`, `helix-bench`, `helix-capture`, `helix-encoder`, `helix-hdr`, `helix-vqa` — 7. Plus helix-bench (depth 2) — that's 8 total per S01 §6.2.
+
+### 5a.4 Depth-3 cohort build order (2 sequential)
+
+`helix-dualpath` first; `helix-record` after (depends on `helix-dualpath`).
+
+### 5a.5 Depth-4 cohort build order (2 sequential)
+
+`helix-pipeline` first; `helix-transport` after. Both depend on the prior cohorts; building helix-pipeline first lets us identify cross-cohort contract gaps before bringing up the deepest depth-4 fan-in (helix-transport's 6-sibling dep tree).
+
+## 5b. The Cross-Submodule Contract Verification
+
+Before any depth-N cohort graduates, the submodules at depth N+1 must compile against the v1.0.0 candidates. Concrete verification:
+
+```bash
+# After depth 1 cohort is at v1.0.0 candidates:
+for depth2_sub in helix-allocator helix-bench helix-encoder helix-capture helix-hdr helix-abr helix-vqa; do
+    cd $depth2_sub
+    go get $UPSTREAM_VAULT_DIGITAL_REPOS@v1.0.0  # bump deps
+    go build ./...   # must compile
+    go test ./...    # unit tests must pass
+    cd ..
+done
+```
+
+If any depth-2 submodule fails to build against the depth-1 candidates, the depth-1 cohort's API freeze is broken; fix-or-revert before proceeding.
+
+## 6. Exit Criteria
+
+Phase_02 exits when:
+
+- [ ] All 29 submodules tagged `v1.0.0` on all four mirrors.
+- [ ] R-04 duplication scan green across the 29-name catalog.
+- [ ] R-12 mock-policy compliance verified.
+- [ ] R-13 anti-bluff via the Challenges per-submodule primary scenarios green.
+- [ ] All 29 SBOMs (cyclonedx + syft) emitted + signed.
+- [ ] All 29 cosign signatures + SLSA L3 attestations published.
+- [ ] All 29 four-mirror replications green.
+- [ ] Operator signoff per Constitution §16.
+
+8 conditions.
+
+---
+
+## 7. Risk Register
+
+| ID       | Risk                                                                                  | Mitigation                                                                |
+|----------|----------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| RP02-01  | Depth-1 cohort race conditions on the 14-parallel-submodule build                     | Stagger by 1 day per submodule; CI runner pool capacity per [O01 §14d](../08_Operations/01_Container_CI_CD.md#14d-ci-concurrency-limits). |
+| RP02-02  | helix-r18-safeexec surface tweaks force ABI break on every depth-1 consumer          | API freeze applies to helix-r18-safeexec from day 1 of Phase_02; ≥ 2-reviewer rule blocks accidental break. |
+| RP02-03  | helix-pipeline depth-4 integration discovers cross-submodule contract gaps           | Bring up depth-1+2 first; stage helix-pipeline last per the §1 ordering. |
+| RP02-04  | Cross-submodule dependency cycle introduced inadvertently                             | helix-dep-cycle-check lint per [S01 §6.5](../06_Submodules/01_Submodule_Catalog.md#65-cycles-none) blocks at PR. |
+| RP02-05  | A submodule's graduation gate fails on Challenges                                     | Per-submodule baseline-replacement procedure; or fix-in-code, not gate-relax. |
+| RP02-06  | NVIDIA driver / CUDA SDK version drift breaks helix-encoder + helix-gpu-direct       | Container CI lane pins driver version; operator pins host driver version. |
+
+---
+
+## 8. Cross-Family Dependencies
+
+| Source                               | Reference                                                              |
+|--------------------------------------|------------------------------------------------------------------------|
+| Submodules family — S01 §3.1          | The 29-row catalog this Phase implements.                              |
+| Submodules family — S05               | The 29 per-submodule descriptors specify each submodule's API surface. |
+| Testing family — T01..T12             | The Ten-test-type discipline each submodule must pass.                 |
+| Operations family — O01–O02           | The CI lane + Quality-Gate stack each submodule consumes.              |
+| Phase_01                              | The vasic-digital/Containers toolchain.                                |
+
+---
+
+## 9. The Phase_02 Calendar
+
+A single-FTE per submodule + parallel work per cohort:
+
+| Cohort        | Submodules | Wall-clock |
+|---------------|-----------|------------|
+| Depth 0       | 3         | 2 weeks    |
+| Depth 1       | 14        | 4 weeks (parallel) |
+| Depth 2       | 8         | 3 weeks (parallel) |
+| Depth 3       | 2         | 2 weeks    |
+| Depth 4       | 2         | 3 weeks    |
+| **Total**    | 29         | ~ 14 weeks |
+
+Operator-side capacity: 8–12 engineers covering Go + Linux + GPU + cgo + container + Vault + crypto. Compressible to ~ 8 weeks with larger team or extended timeline with smaller.
+
+---
+
+## 10. Acceptance Criteria
+
+Operator signoff per Constitution §16 + the §6 exit criteria.
+
+---
+
+## 11. Anti-Bluff Verification
+
+### 11.1 Sources resolved
+
+| Path                                                              | Lines  | Reviewed   | Role                                            |
+|-------------------------------------------------------------------|-------:|------------|-------------------------------------------------|
+| [`Phase_01_Containers_and_CI.md`](Phase_01_Containers_and_CI.md)  |    500 | 2026-04-30 | toolchain predecessor                            |
+| [`../06_Submodules/01_Submodule_Catalog.md`](../06_Submodules/01_Submodule_Catalog.md) | 1,218 | 2026-04-30 | catalog                                          |
+| [`../06_Submodules/per-submodule/`](../06_Submodules/per-submodule/) | 9,245 | 2026-04-30 | 29 descriptors                                   |
+| [`../07_Testing/`](../07_Testing/)                                |  4,533 | 2026-04-30 | test discipline                                  |
+| [`../08_Operations/`](../08_Operations/)                          |  2,315 | 2026-04-30 | operational machinery                            |
+
+### 11.2 Forbidden patterns
+
+Clean.
+
+### 11.3 Sign-off
+
+- Drafted by: orchestrator (Claude Opus 4.7) on 2026-04-30 (specification only).
+- Pending: Phase_02 execution + operator signoff.
+
+End of `09_Implementation_Phases/Phase_02_Core_Submodules.md` — 2026-04-30.

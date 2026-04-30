@@ -1,0 +1,238 @@
+# Phase_05 — Clients
+
+> **Source dimensions:** [`Phase_04_Streaming_Pipeline.md`](Phase_04_Streaming_Pipeline.md), [`../06_Submodules/per-submodule/helix-tv-input.md`](../06_Submodules/per-submodule/helix-tv-input.md), [`../06_Submodules/per-submodule/helix-input.md`](../06_Submodules/per-submodule/helix-input.md), [`../06_Submodules/per-submodule/helix-display.md`](../06_Submodules/per-submodule/helix-display.md), [`../03_Architecture/04_Go_Client_Ecosystem.md`](../03_Architecture/04_Go_Client_Ecosystem.md) (C05), [`../03_Architecture/11_TV_UX.md`](../03_Architecture/11_TV_UX.md) (C12), [`../00_Master_Plan.md`](../00_Master_Plan.md) §7.2 row P05.
+> **Source line count:** chapter floor 500 lines per Master Plan §7.2 row P05.
+> **Phase targets:** R-01 + R-09 (allocation-free hot-path on the client side too) + R-13.
+> **Cross-links:** [`Phase_06_Host_Agent.md`](Phase_06_Host_Agent.md), [`Phase_08_Audio_Surround.md`](Phase_08_Audio_Surround.md).
+> **Status:** Draft v1 specification.
+> **Last updated:** 2026-04-30.
+
+---
+
+## 1. Phase Scope
+
+Phase_05 ships the **HelixPlay clients** across the three primary client surfaces:
+
+1. **Wails desktop client** — Linux + macOS + Windows desktop variant (Go + JS frontend).
+2. **Compose-for-TV client** — Android-TV variant (Kotlin Compose-for-TV with `androidx.tv.material3` 1.0 GA + 1.1.0-rc01 per [C12 §6 MC-05 closure](../03_Architecture/11_TV_UX.md)).
+3. **Steam Deck game-mode client** — Linux Wayland with Gamescope variant.
+
+Each client integrates **helix-tv-input** (TV input dispatch + WCAG 2.2 SC 2.5.8 64-dp focus targets), **helix-input** (controller-side echo + Reflex round-trip), and **helix-display** (frame pacing + VRR + ALLM negotiation).
+
+After Phase_05, an end-user with a real client (laptop / TV / Steam Deck) can connect to a Phase_04 host-agent + see actual gameplay rendered on their display. This is the **first user-facing milestone**.
+
+---
+
+## 2. Prerequisites
+
+- Phase_04 complete + signed off — host-side streaming pipeline operational.
+- helix-tv-input, helix-input, helix-display, helix-tenant, helix-grpc-frame at v1.0.0.
+- Client-side build infrastructure: Wails ≥ v2.10, Android Studio Hedgehog+, Steam Deck SteamOS-compatible toolchain.
+
+---
+
+## 3. Tasks Catalogue
+
+| Task ID    | Task                                                          | Subtasks |
+|------------|---------------------------------------------------------------|---------:|
+| P05.T01   | Wails desktop client scaffold + Go-side wiring                | 6        |
+| P05.T02   | Wails JS frontend (catalog browse + session control)          | 6        |
+| P05.T03   | Wails OAuth + Vault token acquisition                         | 4        |
+| P05.T04   | Wails Pion WebRTC consumer + helix-display integration        | 5        |
+| P05.T05   | Compose-for-TV scaffold + JNI shim from helix-tv-input         | 5        |
+| P05.T06   | Compose-for-TV catalog UI + reference user journey             | 6        |
+| P05.T07   | Compose-for-TV WebRTC consumer + ExoPlayer integration         | 5        |
+| P05.T08   | Steam Deck game-mode client (game-scope-friendly Wails variant)| 5        |
+| P05.T09   | Cross-platform input handling — controllers + remotes + keyboards| 5    |
+| P05.T10   | Per-client smoke test — first user journey end-to-end         | 4        |
+| P05.T11   | Client signing for distribution (operator + per-platform)      | 4        |
+| P05.T12   | Client crash-reporting integration (Sentry-equivalent)         | 3        |
+| P05.T13   | Phase_05 acceptance review                                     | 2        |
+
+13 tasks; ~60 subtasks.
+
+---
+
+## 4. Task Details
+
+### 4.1 P05.T01 — Wails desktop scaffold
+
+Per [C05 §6](../03_Architecture/04_Go_Client_Ecosystem.md):
+
+- Wails v2.10 init + custom title-bar (Apple HIG + Microsoft Fluent + GNOME HIG conformant).
+- Go-side service binding for catalog + session + tenant configuration.
+- Auto-update mechanism via Wails-supported approach + cosign verify on update artefacts.
+- Vendored Go modules (no Go-runtime deps at distribution).
+- Distroless-equivalent for the Wails runtime (note: Wails embeds a webview; not strictly distroless but operator-acceptable).
+
+### 4.2 P05.T02 — Wails JS frontend
+
+- React 18 + TypeScript 5.6.
+- Catalog browse with helix-tenant.Theme application.
+- Session control (start / pause / resume / end).
+- Translation system (every UI string in i18n bundles).
+- WCAG 2.2 SC compliance for keyboard navigation.
+
+### 4.3 P05.T03 — OAuth + Vault
+
+- OAuth2 PKCE flow against the operator's IdP.
+- Vault token acquisition + refresh.
+- Per-tenant token scoping.
+- Token revocation on logout.
+
+### 4.4 P05.T04 — Pion WebRTC consumer
+
+- Pion WebRTC v4 consumer side.
+- ICE / SRTP integration via helix-transport's Connection interface.
+- Frame decode via libavcodec (cgo bindings).
+- helix-display.Pacer for frame presentation.
+
+### 4.5 P05.T05 — Compose-for-TV scaffold
+
+- Android Studio Hedgehog project.
+- `androidx.tv.material3` 1.0 GA (per [C12 §6 MC-05 closure](../03_Architecture/11_TV_UX.md)).
+- `gomobile bind` integration of helix-tv-input's JNI shim.
+- Leanback fallback path (deprecated post-2026-08-31 64-bit Play Store mandate).
+
+### 4.6 P05.T06 — Compose-for-TV catalog UI
+
+- Horizontal-shelf paradigm per Insight #6 + scènes-à-faire grounding.
+- 64 dp minimum focus targets per WCAG 2.2 SC 2.5.8.
+- Trailer auto-play with 2 s focus dwell + 7 s auto-advance + reduced-motion override.
+- Per-tenant theme application via helix-tenant.Theme.ApplyToClient.
+
+### 4.7 P05.T07 — Compose-for-TV WebRTC consumer
+
+- ExoPlayer integration with Pion-Android bridge.
+- helix-display VRR negotiation (HDMI 2.1 VRR + ALLM).
+
+### 4.8 P05.T08 — Steam Deck game-mode
+
+- Wails-derived variant + Gamescope-friendly window management.
+- SteamInput SDK integration vs helix-input choice (per OQ-tv-input-B).
+- Steam Deck-specific button mapping.
+
+### 4.9 P05.T09 — Cross-platform input
+
+- Xbox 360, Xbox One, DualShock 4, DualSense, Stadia, Joy-Con, Steam Controller — full controller compatibility.
+- Per-platform input-device permission UX.
+- Reflex round-trip echo via helix-input.
+
+### 4.10 P05.T10 — Per-client smoke
+
+For each of the 3 client variants:
+
+1. User logs in via OAuth.
+2. Browses catalog (lists 5 titles).
+3. Selects a title; session begins.
+4. Receives 1080p60 stream from Phase_04 host-agent.
+5. Issues controller input; verify host-side action.
+6. Disconnects gracefully.
+
+p999 controller round-trip ≤ 25 ms (Phase_05 relaxed).
+
+### 4.11 P05.T11 — Client distribution signing
+
+- Linux .AppImage signed with cosign.
+- Windows .msi signed with operator's EV cert.
+- macOS .dmg notarised + signed with Apple Developer ID.
+- Android .apk + .aab signed with operator's Play upload key.
+- Steam Deck Flatpak signed.
+
+### 4.12 P05.T12 — Crash reporting
+
+Sentry (or operator's equivalent) integrated into every client; per Constitution §10 observability.
+
+### 4.13 P05.T13 — Acceptance review
+
+Operator + UX review per Constitution §16. UX review is non-trivial — per [C12 §6](../03_Architecture/11_TV_UX.md), operator validates the Reference User Journey (per [System Overview §3](../02_System_Overview.md#3-reference-user-journey)) on every client variant.
+
+---
+
+## 5. Subtask Catalogue
+
+60 subtasks across 13 tasks; bulk-imported.
+
+---
+
+## 6. Exit Criteria
+
+- [ ] Wails desktop client builds + runs on Linux + macOS + Windows.
+- [ ] Compose-for-TV client builds + runs on Android-TV emulator + at least 1 real Android-TV device.
+- [ ] Steam Deck client builds + runs on real Steam Deck.
+- [ ] Per-client smoke test passes for all 3.
+- [ ] Cross-platform input device coverage verified.
+- [ ] OAuth + Vault token flow end-to-end.
+- [ ] Per-client distribution signing complete.
+- [ ] Crash-reporting integrated.
+- [ ] WCAG 2.2 SC 2.5.8 64-dp focus targets verified on TV variant.
+- [ ] Operator signoff per Constitution §16.
+
+---
+
+## 7. Risk Register
+
+| ID       | Risk                                                                | Mitigation                                                            |
+|----------|----------------------------------------------------------------------|------------------------------------------------------------------------|
+| RP05-01  | Apple notarisation rejection                                          | Phase_00 P00.T03 operator Apple Developer ID set up; tested before Phase_05. |
+| RP05-02  | androidx.tv.material3 1.0 GA upstream regression                      | Pin to a specific minor version; Renovate-driven bump policy.         |
+| RP05-03  | Steam Deck SteamOS update breaks Wails Gamescope integration         | Operator monitors SteamOS release notes; pinned to a specific SteamOS version + tested before bumps. |
+| RP05-04  | Pion-Android bridge instability on legacy Android-TV devices         | Fallback to ExoPlayer's native WebRTC (less feature-rich but stable). |
+| RP05-05  | ICE NAT traversal fails in operator's specific tenant network        | Phase_03 P03.T05 TURN server is the documented fallback.              |
+
+---
+
+## 8. Cross-Family Dependencies
+
+- C05 §6 (Go Client Ecosystem) + C12 §6 (TV UX) architecturally specify the patterns.
+- helix-tv-input + helix-input + helix-display (Phase_02) provide the primitives.
+- helix-pipeline + helix-transport (Phase_04) provide the host-side backend.
+- helix-tenant (Phase_02) provides theming.
+
+---
+
+## 9. The Phase_05 Calendar
+
+| Week | Activity                                                         |
+|------|------------------------------------------------------------------|
+| 1–2  | T01–T04 (Wails desktop)                                           |
+| 3–4  | T05–T07 (Compose-for-TV)                                          |
+| 5    | T08 (Steam Deck)                                                  |
+| 5    | T09 (cross-platform input)                                         |
+| 6    | T10 (per-client smoke)                                            |
+| 6    | T11–T12 (signing + crash reporting)                                |
+| 6    | T13 (acceptance)                                                   |
+
+Operator-side capacity: 4–6 engineers covering Go + TS/React + Kotlin + Wayland + Apple ecosystems. ~ 6 weeks.
+
+---
+
+## 10. Acceptance Criteria
+
+Constitution §16 signoff + §6 exit criteria.
+
+---
+
+## 11. Anti-Bluff Verification
+
+### 11.1 Sources resolved
+
+| Path                                                              | Lines  | Reviewed   | Role                                            |
+|-------------------------------------------------------------------|-------:|------------|-------------------------------------------------|
+| [`Phase_04_Streaming_Pipeline.md`](Phase_04_Streaming_Pipeline.md) |    230+ | 2026-04-30 | predecessor                                      |
+| [`../06_Submodules/per-submodule/helix-tv-input.md`](../06_Submodules/per-submodule/helix-tv-input.md) | 309 | 2026-04-30 | TV input primitive                |
+| [`../06_Submodules/per-submodule/helix-input.md`](../06_Submodules/per-submodule/helix-input.md) | 325 | 2026-04-30 | controller input                                |
+| [`../06_Submodules/per-submodule/helix-display.md`](../06_Submodules/per-submodule/helix-display.md) | 321 | 2026-04-30 | frame pacing + VRR                              |
+| [`../03_Architecture/04_Go_Client_Ecosystem.md`](../03_Architecture/04_Go_Client_Ecosystem.md) | 3,336 | 2026-04-30 | C05 architectural source                  |
+| [`../03_Architecture/11_TV_UX.md`](../03_Architecture/11_TV_UX.md) | 3,273 | 2026-04-30 | C12 architectural source                                 |
+
+### 11.2 Forbidden patterns
+
+Clean.
+
+### 11.3 Sign-off
+
+- Drafted by: orchestrator (Claude Opus 4.7) on 2026-04-30 (specification only).
+- Pending: Phase_05 execution + operator signoff.
+
+End of `09_Implementation_Phases/Phase_05_Clients.md` — 2026-04-30.
