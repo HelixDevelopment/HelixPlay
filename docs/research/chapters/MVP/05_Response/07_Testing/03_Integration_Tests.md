@@ -249,6 +249,35 @@ Integration tests pull images on every fresh CI runner. A four-mirror runner top
 
 The strategy means Integration tests on each mirror complete in similar wall-clock; mirror divergence in test duration triggers a P3 alert per [S04 §8](../06_Submodules/04_HelixQA_Integration.md#8-alert-routing-and-on-call-rotation).
 
+## 7d. The Test-Database Migration Discipline
+
+Integration tests against CockroachDB / Postgres MUST run database migrations against a fresh database per test session. Fixed-schema or shared-database fixtures lead to test-execution-order coupling (per §5.3). The pattern:
+
+```go
+//go:build integration
+package storage_integration_test
+
+func TestMain(m *testing.M) {
+    ctx := context.Background()
+    container := startCockroach(ctx)              // testcontainers-go
+    defer container.Terminate(ctx)
+
+    db := connectAndMigrate(ctx, container)       // applies migrations from migrations/*.sql
+    code := m.Run()
+    container.Terminate(ctx)
+    os.Exit(code)
+}
+
+func connectAndMigrate(ctx context.Context, c testcontainers.Container) *sql.DB {
+    addr, _ := c.Endpoint(ctx, "")
+    db, _ := sql.Open("postgres", "postgres://root@"+addr+"?sslmode=disable")
+    migrate.Up(db, "migrations/")  // helix-storage's migration tool
+    return db
+}
+```
+
+The helper `helix-storage-migrate` is a thin wrapper over `golang-migrate/migrate` (pinned to ≥ v4.18.0). Migrations are committed under `<submodule>/migrations/<NNN>_<name>.up.sql` + `.down.sql`; the `.down.sql` is verified by `helix-down-migration-audit` to exist for every up-migration so rollback paths are testable.
+
 ## 8. Open Questions
 
 | ID                  | Question                                                                                                       | Defer to                                            |
