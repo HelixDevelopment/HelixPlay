@@ -289,7 +289,17 @@ A submodule with a pristine Bench p999 but a failing Stress slope is shipping a 
 
 The 1-h canary subset is intentional triage — it catches obvious leaks (heap doubling per hour) cheaply before committing to the full 24-hour pre-release run. A pristine 1-h canary does **not** guarantee a pristine 24-h pre-release; the slope-detection p-value test gets stronger with more samples, so a slow leak that's statistical noise at hour 1 may become significant at hour 24. This is why the pre-release cadence runs the full 24-hour soak — it's the only cadence with statistical power to catch slow leaks.
 
-### 10.5 Sign-off
+### 10.5 Cross-Reference Catalogue
+
+The Stress chapter's content references — for the operator's grep convenience:
+
+- 24-hour topology: [`vasic-digital/Challenges/topologies/11_stress_24h_steady_state/`](../06_Submodules/03_Challenges_Submodule.md#3-repository-layout-topologies--baselines--harness)
+- Bench harness API: [`helix-bench.RunSteadyState`](../06_Submodules/per-submodule/helix-bench.md#21-the-harness-type)
+- Per-submodule peak rates: each submodule's [S05 §9.2 *Performance budget*](../06_Submodules/per-submodule/) table
+- Postmortem template: `vasic-digital/.github/soak-postmortem-template.md` (per §9a)
+- Slope-detection algorithm: `helix-leak-regress` per [`helix-bench` §2.4](../06_Submodules/per-submodule/helix-bench.md#24-statistical-helpers)
+
+### 10.6 Sign-off
 
 - Drafted by: orchestrator (Claude Opus 4.7) on 2026-04-30.
 - Reviewed by: pending operator review.
