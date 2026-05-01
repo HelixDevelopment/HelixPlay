@@ -1,4 +1,4 @@
-# HelixPlay Project Constitution
+# HelixPlay Project Constitution v2.0.0
 
 > **Slogan:** "Ultimate gaming experience!"
 >
@@ -26,9 +26,17 @@
 The HelixPlay project has, in prior iterations on sister codebases
 (see CLAUDE.md, "We had been in position that all tests do execute with
 success and all Challenges as well, but in reality the most of the
-features does not work…"), suffered from **green tests on broken
-features**. This Constitution exists to make that failure mode
+features does not work and can't be used!"), suffered from **green tests
+on broken features**. This Constitution exists to make that failure mode
 structurally impossible.
+
+**User Mandate 2026-04-30:** All submodules MUST respect DRY, KISS, and
+Top 10 principles. Lazy initialization is the default (§5.2). Anti-bluff
+tests MUST guarantee real end-user usability — green tests without
+working features are a Constitution §1 violation. 100% coverage across
+all ten test types is mandatory. Challenges + HelixQA integration is
+mandatory. All submodules MUST contain Constitution, CLAUDE.md,
+AGENTS.md with these clauses baked in.
 
 The Constitution is short, normative, and uncompromising. Where the
 phrase **MUST**, **MUST NOT**, **SHALL**, or **SHALL NOT** appears, it is
@@ -58,7 +66,10 @@ codebase, documentation, configuration, or scripting:
 - Tests that pass without exercising the system. Tests whose failure
   mode is "the test framework crashed" or "the assertion was vacuously
   true." Tests whose green result does not imply that an end user can
-  use the feature.
+  use the feature. This explicitly includes patterns such as
+  `assert.True(t, true)`, `assert.NotNil(t, nil)`, and any assertion
+  that is tautologically true or that asserts on mock call counts
+  rather than observable behaviour.
 - Phrases used to dodge specifying behaviour: "and similar", "etc."
   (in normative text), "as appropriate", "as needed", "where reasonable".
   These are allowed in prose only when they describe past evidence,
@@ -341,6 +352,10 @@ can use the feature it covers. To qualify:
 - The test's reason for failure, when it does fail, must be
   diagnostic — a log fragment or screenshot lands in the artifacts
   bundle.
+- **Execution of tests and Challenges MUST guarantee the quality, the
+  completion and full usability by end users of the product.** A test
+  suite that passes while the corresponding feature is non-functional
+  is a Constitution §1 violation, regardless of coverage metrics.
 
 ### 6.4 Coverage gate
 
@@ -720,14 +735,21 @@ crash) for reasons outside our control, recovery posture is:
 #### 11.5.7 Anti-bluff testing reinforcement (cross-link §1, §6.3)
 
 Reaffirmed because the operator emphasised it after the Session-3
-incident: **green tests must guarantee real, end-user-usable
-behaviour**. A test that passes without exercising the system is a
-Constitution §1 violation regardless of how convenient the green
-result is. Every submodule's CI MUST include a "negative leg" test
+incident and again on 2026-04-30: **green tests must guarantee real,
+end-user-usable behaviour**. A test that passes without exercising the
+system is a Constitution §1 violation regardless of how convenient the
+green result is. Every submodule's CI MUST include a "negative leg" test
 per Constitution §6.3 — removing the feature must cause the test to
 fail. Constitution §6.3 already mandates this; this sub-clause
 ensures the rule is propagated to every submodule's CONSTITUTION.md
 when those submodules come into existence.
+
+**Additional mandate (2026-05-01):** The Challenges runner's
+`ValidateAntiBluff` gate MUST be unconditional. Environment variables
+such as `CHALLENGE_ANTIBLUFF_STRICT` that disable the gate are
+forbidden. A Challenge result claiming Status=Passed MUST always carry
+positive evidence (non-empty RecordedActions + at least one passing
+assertion).
 
 ---
 
@@ -876,4 +898,4 @@ Executed by: Claude (orchestrator session 1)
 Reviewed by: pending operator review
 Date: 2026-04-28
 
-End of Constitution v1 — 2026-04-28.
+End of Constitution v2.0.0 — 2026-05-01.

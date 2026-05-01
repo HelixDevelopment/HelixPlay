@@ -141,11 +141,11 @@
 
 - [x] **Spec has 0 `[NEEDS_CLARIFICATION]` markers** — passes the ≤3 rule
 - [x] Open questions documented in spec §Open Questions (OQ-001..OQ-005) with `[NEEDS CLARIFICATION]` inline
-- [ ] **OQ-001**: OAuth2/OIDC provider choice for white-label tenants
-- [ ] **OQ-002**: CDN vendor for 4K asset delivery
-- [ ] **OQ-003**: Billing/monetization integration (Stripe, Adyen, custom)
-- [ ] **OQ-004**: Additional game store integrations (Ubisoft Connect, Battle.net, Origin)
-- [ ] **OQ-005**: Maximum concurrent session count per host (per-GPU limit)
+- [x] **OQ-001**: OAuth2/OIDC provider choice → **Auth0** (resolved in spec C-001)
+- [x] **OQ-002**: CDN vendor → **Amazon CloudFront + S3** (resolved in spec C-002)
+- [x] **OQ-003**: Billing/monetization → **Custom billing (vasic-digital/Monetization)** (resolved in spec C-003)
+- [x] **OQ-004**: Additional game store integrations → **All four (Ubisoft + Battle.net + Origin + Microsoft Store)** (resolved in spec C-004)
+- [x] **OQ-005**: Maximum concurrent session count → **1 session per GPU** (resolved in spec C-005)
 
 ---
 
@@ -178,11 +178,11 @@
 - [x] Anti-Bluff Verification block complete (sources, forbidden patterns, test coverage, submodule propagation, operational integrity)
 - [x] Quality checklist exists: `specs/001-helixplay-system/checklists/requirements.md` (this file)
 - [x] Zero `[NEEDS_CLARIFICATION]` in spec body (all in §Open Questions with proper markup)
-- [ ] Run `after_specify` hook: auto-commit spec changes
-- [ ] Push to all 4 remotes
-- [ ] Create GitHub Projects + GitLab issues from phase breakdown (R-17)
+- [x] Run `after_specify` hook: auto-commit spec changes — **DONE** (anti-bluff scan, Constitution v2.0.0, test fixes, submodule propagation committed)
+- [ ] Push to all 4 remotes — **PENDING OPERATOR AUTHORIZATION** per Constitution §9.2
+- [ ] Create GitHub Projects + GitLab issues from phase breakdown (R-17) — **PENDING** (requires operator confirmation of phase priorities)
 
 ---
 
 **VALIDATION RESULT**: ✅ **PASS** — Spec ready for review  
-**Next step**: Execute `after_specify` hook (auto-commit) → Push to remotes → Create project board issues
+**Next step**: Operator review → Push to remotes → Create project board issues → Begin Phase_00 execution

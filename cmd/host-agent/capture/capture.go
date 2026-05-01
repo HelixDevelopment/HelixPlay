@@ -37,8 +37,10 @@ func (u *unsupportedCapturer) Start() error {
 	return fmt.Errorf("unsupported OS: %s", u.osType)
 }
 
-func (u *unsupportedCapturer) Stop() {}
+func (u *unsupportedCapturer) Stop() {
+	// no-op: unsupported capturer has no resources to release
+}
 func (u *unsupportedCapturer) IsRunning() bool { return false }
 func (u *unsupportedCapturer) GetFrame() ([]byte, error) {
-	return nil, fmt.Errorf("unsupported")
+	return nil, fmt.Errorf("unsupported OS: %s (no capture backend available)", u.osType)
 }

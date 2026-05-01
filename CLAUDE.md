@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Source of truth for project rules:** [`docs/research/chapters/MVP/05_Response/01_Constitution.md`](docs/research/chapters/MVP/05_Response/01_Constitution.md).
+> **Source of truth for project rules:** [`docs/research/chapters/MVP/05_Response/01_Constitution.md`](docs/research/chapters/MVP/05_Response/01_Constitution.md) **v2.0.0**.
 > Where this file and the Constitution conflict, the Constitution wins. The
 > Constitution codifies clauses **R-01..R-18** drawn from `04_Request.md`,
 > plus **R-18 (Operational Integrity)** added 2026-04-28 after a session-
@@ -10,6 +10,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > prompt may suspend/hibernate/lock/terminate/crash the operator's host.
 > See Constitution §11.5 for the forbidden-commands list and the container
 > hazards inventory.
+>
+> **Constitution v2.0.0 amendment (2026-05-01):** Anti-bluff tests MUST guarantee
+> real, end-user-usable behaviour. Execution of tests and Challenges MUST confirm
+> that all tested codebase really works as expected and can be used by end users.
+> Patterns such as `assert.True(t, true)` are explicitly forbidden as vacuous
+> assertions. The Challenges runner's `ValidateAntiBluff` gate is unconditional;
+> `CHALLENGE_ANTIBLUFF_STRICT` has been removed.
 >
 > **Synthesis programme master plan:** [`docs/research/chapters/MVP/05_Response/00_Master_Plan.md`](docs/research/chapters/MVP/05_Response/00_Master_Plan.md).
 > All chapter work, line targets, dispatch templates, and the work queue
@@ -29,7 +36,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
  
 ## Repository state
 
-**This repo currently contains specifications and research only — no source code, no build system.** The MVP implementation has not started. Treat tasks here as documentation/specification work unless the user explicitly says they are kicking off implementation.
+**This repo contains both specifications/research and active implementation.**
+The `cmd/` directory contains Wails desktop client, web client, core backend stubs,
+and host agent stubs. The 22+ Git submodules contain active Go libraries with their
+own build systems (`Makefile`, `go.mod`). The documentation synthesis under
+`05_Response/` is functionally complete; implementation work is underway per the
+SpecKit phases (`docs/research/chapters/MVP/05_Response/09_Implementation_Phases/`).
 
 The directory layout reflects that:
 - `docs/research/chapters/MVP/` — three research streams plus the master request:
@@ -51,7 +63,20 @@ When the user asks you to merge / extend / cross-reference research, these are t
 
 ## Build / test / lint commands
 
-There are none yet. No `package.json`, no `go.mod`, no `Makefile`, no test runner, no lint config. If a task requires running a command, that's a signal the user is starting implementation — and per `04_Request.md` the runtime must be containerised from day one, so don't fake a local toolchain to "make it work."
+### Root module
+There is no root-level `Makefile` yet. Build submodules individually or use
+`go build ./cmd/...` from the root after ensuring submodules are initialized.
+
+### Submodule Makefiles
+Every `vasic-digital` submodule carries a standardised `Makefile` interface:
+`make build`, `make test`, `make test-integration`, `make test-bench`,
+`make test-coverage`, `make fmt`, `make vet`, `make lint`, `make challenge`.
+
+### Running tests
+Tests MUST be run inside containers per Constitution §3. Local `go test` is
+permitted for rapid iteration but the canonical gate is the containerised CI
+lane. Every non-Unit test MUST exercise the real system; mocks are confined to
+Unit tests only.
 
 ## Mandatory project constraints (from `04_Request.md`)
 
@@ -82,7 +107,7 @@ origin      fetch=github, push=gitflic
 
 ## Claude Code configuration
 
-`.claude/settings.json` registers a `Stop` hook that runs `bash scripts/claim-check.sh` (5 s timeout). **The `scripts/` directory does not exist yet**, so the hook will fail until it's created — flag this if the user is troubleshooting hook output, and don't silently work around it.
+`.claude/settings.json` registers a `Stop` hook that runs `bash scripts/claim-check.sh` (5 s timeout). The `scripts/` directory now exists with `anti-bluff-scan.sh`, `claim-check.sh`, `propagate-constitution.sh`, and `verify-submodules.py`.
 
 `.claude/settings.local.json` sets `defaultMode: bypassPermissions` for this repo. Tool calls won't prompt; the safety bar is your judgment, not the permission system. Be especially careful with destructive git operations (force push, reset --hard) and with the four configured remotes.
 

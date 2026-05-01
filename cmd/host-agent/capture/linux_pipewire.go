@@ -29,5 +29,5 @@ func (p *pipeWireCapturer) IsRunning() bool {
 }
 
 func (p *pipeWireCapturer) GetFrame() ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, fmt.Errorf("platform capturer not yet implemented: PipeWire capture requires CGo bindings to libpipewire-0.3")
 }

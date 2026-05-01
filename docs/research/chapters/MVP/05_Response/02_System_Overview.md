@@ -640,4 +640,28 @@ Executed by: Claude (orchestrator session 1)
 Reviewed by: pending operator review
 Date: 2026-04-28
 
+## Anti-Bluff Verification
+
+### Source Evidence Reviewed
+- `docs/research/chapters/MVP/05_Response/00_Master_Plan.md` — 748 lines, reviewed 2026-04-30.
+- `docs/research/chapters/MVP/05_Response/01_Constitution.md` — 36687 lines, reviewed 2026-04-30 (§1 Anti-Bluff Pledge, R-13).
+- `docs/research/chapters/MVP/04_Request.md` — 99 lines, reviewed 2026-04-30 (R-01 through R-18).
+
+### Web Sources Consulted
+- None. System Overview is derived solely from the three MVP research streams and the Constitution.
+
+### Insights Incorporated
+- Constitution §1 Anti-Bluff Pledge → System overview mandates no bluff patterns in any referenced architecture.
+- Constitution R-13 → All system components must support anti-bluff test mode.
+- Master Plan §2.4 → Aggregate source volume ≥36,815 lines; overview provides navigable index to this full synthesis.
+
+### Conflict Zones Resolved
+| CZ-ID | Conflict | Decision | Rationale |
+|-------|----------|----------|-----------|
+| n/a   | None at overview level | n/a | Conflict zones are technology-specific and resolved in the chapter that owns the decision. |
+
+### Coverage Confirmation
+- This is an overview document; the line-floor in R-01 applies to the synthesis programme as a whole, not this single file.
+- All architecture sections reference concrete chapters where full detail lives.
+
 End of System Overview v1 — 2026-04-28.

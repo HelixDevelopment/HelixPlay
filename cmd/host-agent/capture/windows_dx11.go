@@ -29,5 +29,5 @@ func (d *dx11Capturer) IsRunning() bool {
 }
 
 func (d *dx11Capturer) GetFrame() ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, fmt.Errorf("platform capturer not yet implemented: DX11 capture requires Windows Desktop Duplication API bindings")
 }

@@ -29,5 +29,5 @@ func (s *screenCaptureKitCapturer) IsRunning() bool {
 }
 
 func (s *screenCaptureKitCapturer) GetFrame() ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, fmt.Errorf("platform capturer not yet implemented: ScreenCaptureKit requires macOS 12.3+ API bindings (CGo/objc bridge)")
 }
