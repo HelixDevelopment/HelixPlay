@@ -6,7 +6,7 @@ set -euo pipefail
 
 echo "=== Anti-Bluff CI Scan (Constitution §1 / R-13) ==="
 echo "Mandate: green tests MUST guarantee real, end-user-usable behaviour"
-echo "Version: 2.0.0 (2026-05-01)"
+echo "Version: 2.1.0 (2026-05-01)"
 echo ""
 
 FAILED=0

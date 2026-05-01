@@ -2,17 +2,24 @@
 
 For non-Claude agents (Codex, Cursor, Aider, Copilot, Cline, etc.) working in this repo. Claude Code reads `CLAUDE.md`.
 
-> **Source of truth:** `docs/research/chapters/MVP/05_Response/01_Constitution.md` **v2.0.0**
+> **Source of truth:** `docs/research/chapters/MVP/05_Response/01_Constitution.md` **v2.1.0**
 > **Authoritative MVP brief:** `docs/research/chapters/MVP/04_Request.md` — read before any planning question.
 > **Synthesis programme master plan:** `docs/research/chapters/MVP/05_Response/00_Master_Plan.md`
 > **System overview:** `docs/research/chapters/MVP/05_Response/02_System_Overview.md`
 >
-> **Constitution v2.0.0 amendment (2026-05-01):** Anti-bluff tests MUST guarantee
-> real, end-user-usable behaviour. Execution of tests and Challenges MUST confirm
-> that all tested codebase really works as expected and can be used by end users.
-> Patterns such as `assert.True(t, true)` are explicitly forbidden as vacuous
-> assertions. The Challenges runner's `ValidateAntiBluff` gate is unconditional;
-> `CHALLENGE_ANTIBLUFF_STRICT` has been removed.
+> **Constitution v2.1.0 amendments (2026-05-01):**
+> 1. Anti-bluff tests MUST guarantee real, end-user-usable behaviour. Forbidden:
+>    `assert.True(t, true)`, `assert.NotNil(t, nil)`, constructor-only tests,
+>    mock-only integration/E2E tests, and permanently skipped tests without
+>    containerization plans.
+> 2. **Usability evidence mandatory** per §6.7 — every feature needs HelixQA visual
+>    assertion, manual recording, or Challenge scenario evidence.
+> 3. **Automatic negative-leg fault injection** per §1.3 / §6.3 / §11.5.7 — CI
+>    breaks each feature and verifies non-Unit tests fail. If none fail, merge
+>    is blocked.
+> 4. `ValidateAntiBluff` unconditional; `CHALLENGE_ANTIBLUFF_STRICT` removed.
+>    All challenge implementations now call `RecordAction()`.
+> 5. Container verifier `execCommand()` executes real commands; no more no-op.
 
 ---
 
@@ -237,7 +244,7 @@ Located in `scripts/`:
 
 These are mandatory project-wide rules, not suggestions:
 
-- **Anti-bluff:** No `TODO`, `FIXME`, `XXX`, `placeholder`, empty function bodies, dead code, or tests that pass without exercising real behaviour. Details in Constitution §1. Explicitly forbidden: `assert.True(t, true)`, `assert.NotNil(t, nil)`, and any tautologically true assertion. Tests MUST confirm that all tested codebase really works as expected and can be used by end users.
+- **Anti-bluff:** No `TODO`, `FIXME`, `XXX`, `placeholder`, empty function bodies, dead code, or tests that pass without exercising real behaviour. Details in Constitution §1. Explicitly forbidden: `assert.True(t, true)`, `assert.NotNil(t, nil)`, constructor-only tests (`TestNew*` with only nil checks), mock-only integration/E2E tests, and permanently skipped tests without containerization plans. Tests MUST confirm that all tested codebase really works as expected and can be used by end users. Usability evidence (HelixQA visual assertion, manual recording, or Challenge scenario) is mandatory per §6.7.
 - **Containers only:** Every service, DB, build step, test runner, and scanner runs inside a container. Definitions live in `vasic-digital/Containers` — never vendor a `Dockerfile` outside that submodule. No faking a local toolchain.
 - **Decoupling:** Reusable components live in **public** `vasic-digital` Git/Go submodules. Reuse before recreating.
 - **Tests:** 100% coverage across **all ten** types: Unit, Integration, E2E, Security, Benchmarking, Chaos, Stress, Smoke, Full Automation, **Challenges**. Only Unit may use mocks. Latency tests report p50/p99/p999 — no averages. Challenges boot the full stack from `vasic-digital/Challenges`; QA lives in `HelixDevelopment/HelixQA`.

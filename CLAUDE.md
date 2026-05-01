@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Source of truth for project rules:** [`docs/research/chapters/MVP/05_Response/01_Constitution.md`](docs/research/chapters/MVP/05_Response/01_Constitution.md) **v2.0.0**.
+> **Source of truth for project rules:** [`docs/research/chapters/MVP/05_Response/01_Constitution.md`](docs/research/chapters/MVP/05_Response/01_Constitution.md) **v2.1.0**.
 > Where this file and the Constitution conflict, the Constitution wins. The
 > Constitution codifies clauses **R-01..R-18** drawn from `04_Request.md`,
 > plus **R-18 (Operational Integrity)** added 2026-04-28 after a session-
@@ -11,12 +11,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > See Constitution §11.5 for the forbidden-commands list and the container
 > hazards inventory.
 >
-> **Constitution v2.0.0 amendment (2026-05-01):** Anti-bluff tests MUST guarantee
-> real, end-user-usable behaviour. Execution of tests and Challenges MUST confirm
-> that all tested codebase really works as expected and can be used by end users.
-> Patterns such as `assert.True(t, true)` are explicitly forbidden as vacuous
-> assertions. The Challenges runner's `ValidateAntiBluff` gate is unconditional;
-> `CHALLENGE_ANTIBLUFF_STRICT` has been removed.
+> **Constitution v2.1.0 amendments (2026-05-01):**
+> 1. Anti-bluff tests MUST guarantee real, end-user-usable behaviour. Execution of
+>    tests and Challenges MUST confirm that all tested codebase really works as
+>    expected and can be used by end users. Patterns such as `assert.True(t, true)`,
+>    `assert.NotNil(t, nil)`, constructor-only tests, and mock-only integration/E2E
+>    tests are explicitly forbidden.
+> 2. **Usability evidence is mandatory** per §6.7 — every feature needs HelixQA visual
+>    assertion, manual recording, or Challenge scenario evidence. Code coverage alone
+>    is insufficient.
+> 3. **Automatic negative-leg fault injection** per §1.3 and §6.3 — CI must
+>    temporarily break each feature and verify that at least one non-Unit test fails.
+>    If no test fails, the feature is blocked from merge.
+> 4. The Challenges runner's `ValidateAntiBluff` gate is unconditional;
+>    `CHALLENGE_ANTIBLUFF_STRICT` has been removed. All 20 challenge implementations
+>    now call `RecordAction()`.
+> 5. Container verifier `execCommand()` no longer a no-op; TCP/HTTP health checks
+>    now execute real commands.
 >
 > **Synthesis programme master plan:** [`docs/research/chapters/MVP/05_Response/00_Master_Plan.md`](docs/research/chapters/MVP/05_Response/00_Master_Plan.md).
 > All chapter work, line targets, dispatch templates, and the work queue

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # propagate-constitution.sh
-# Propagate Constitution v2.0.0 preamble to all submodules
-# Task 1.1: Propagate Constitution v2.0.0 to all submodules
+# Propagate Constitution v2.1.0 preamble and anti-bluff enforcement to all submodules
 
 set -euo pipefail
 
@@ -13,7 +12,7 @@ CONSTITUTION_URL="https://github.com/HelixDevelopment/HelixPlay/blob/main/docs/r
 # Read submodules dynamically from .gitmodules
 SUBMODULES=($(git config --file .gitmodules --get-regexp path | awk '{print $2}'))
 
-echo "Propagating Constitution v2.0.0 to ${#SUBMODULES[@]} submodules..."
+echo "Propagating Constitution v2.1.0 to ${#SUBMODULES[@]} submodules..."
 echo "Constitution URL: $CONSTITUTION_URL"
 echo ""
 
@@ -25,69 +24,73 @@ for submodule in "${SUBMODULES[@]}"; do
         continue
     fi
 
-    # CLAUDE.md - keep as is (already fine)
     cat > "$submodule/CLAUDE.md" <<EOF
 # CLAUDE.md — ${submodule}
 
-> **Constitution v2.0.0**: [Read the Constitution]($CONSTITUTION_URL)
+> **Constitution v2.1.0**: [Read the Constitution]($CONSTITUTION_URL)
 > All rules in Constitution §1-§18 are MANDATORY. No exception.
+>
+> **Amendments (2026-05-01):**
+> - Anti-bluff: forbidden patterns include \`assert.True(t, true)\`,
+>   \`assert.NotNil(t, nil)\`, constructor-only tests, mock-only
+>   integration/E2E tests, and permanently skipped tests without
+>   containerization plans.
+> - Usability evidence mandatory per §6.7 (HelixQA visual assertion,
+>   manual recording, or Challenge scenario).
+> - Automatic negative-leg fault injection per §1.3 / §6.3 / §11.5.7 —
+>   CI breaks each feature and verifies non-Unit tests fail.
+> - \`ValidateAntiBluff\` unconditional; all challenges call \`RecordAction()\`.
 
 ## Project Context
-This submodule is part of the HelixPlay system. See the [feature spec](https://github.com/HelixDevelopment/HelixPlay/blob/001-helixplay-system/specs/001-helixplay-system/spec.md).
+This submodule is part of the HelixPlay system.
+See the [feature spec](https://github.com/HelixDevelopment/HelixPlay/blob/001-helixplay-system/specs/001-helixplay-system/spec.md).
 
 ## Submodule-Specific Notes
 <!-- Add submodule-specific AI agent guidance here -->
 EOF
 
-    # AGENTS.md - enhanced with git topology and critical constraints
     cat > "$submodule/AGENTS.md" <<EOF
 # AGENTS.md — ${submodule}
 
-> **Constitution v2.0.0**: [Read the Constitution]($CONSTITUTION_URL)
+> **Constitution v2.1.0**: [Read the Constitution]($CONSTITUTION_URL)
 > All rules in Constitution §1-§18 are MANDATORY. No exception.
+>
+> **Amendments (2026-05-01):**
+> - Anti-bluff enforcement strengthened: no vacuous assertions, no
+>   constructor-only tests, no mock-only integration/E2E tests, no
+>   untriaged skips.
+> - Usability evidence mandatory per §6.7.
+> - Automatic negative-leg fault injection per §1.3 / §6.3 / §11.5.7.
+> - \`ValidateAntiBluff\` unconditional; all challenges call \`RecordAction()\`.
+> - Container verifier \`execCommand()\` executes real commands.
 
 ## Repo state
 This is a \`vasic-digital\` / \`HelixDevelopment\` submodule for HelixPlay.
-Specs live in \`docs/research/chapters/MVP/\` — treat as source of truth.
-
-## Git topology
-Four remotes; \`origin\` is **split**: fetch from GitHub, push to GitFlic.
-
-\`\`\`bash
-github      git@github.com:HelixDevelopment/HelixPlay.git
-gitlab      git@gitlab.com:helixdevelopment1/HelixPlay.git
-gitverse    git@gitverse.ru:helixdevelopment/HelixPlay.git
-gitflic     git@gitflic.ru:helixdevelopment/helixplay.git
-origin      fetch=github, push=gitflic
-\`\`\`
-
-When operator says "push", confirm which mirror — \`origin\` only updates GitFlic. Force-push requires explicit authorization. \`--no-verify\` is forbidden.
 
 ## Critical constraints
+- **Anti-bluff:** No placeholders, dead code, vacuous tests. Details in Constitution §1.
+- **Containers only:** Every service, DB, build, test runs inside a container.
+- **Decoupling:** Reusable components live in public \`vasic-digital\` submodules.
+- **Tests:** 100% coverage across all ten types. Only Unit may use mocks.
+- **R-18 Operational Integrity:** No command may suspend/hibernate/lock/terminate/crash the host.
 
-These are mandatory project-wide rules, not suggestions:
-
-- **Anti-bluff:** No \`TODO\`, \`FIXME\`, \`XXX\`, \`placeholder\`, empty function bodies, dead code, or tests that pass without exercising real behavior. Details in Constitution §1.
-- **Containers only:** Every service, DB, build step, test runner, and scanner runs inside a container. Definitions live in \`vasic-digital/Containers\` — never vendor a \`Dockerfile\` outside that submodule. No faking a local toolchain.
-- **Decoupling:** Reusable components live in **public** \`vasic-digital\` Git/Go submodules. Reuse before recreating.
-
-## Agent instructions
-<!-- Add submodule-specific agent instructions here -->
+## Git topology
+\`origin\` fetch=GitHub, push=GitFlic. Four remotes configured.
+Force-push requires explicit authorization. \`--no-verify\` is forbidden.
 EOF
 
-    # CONSTITUTION.md — proper reference file
     cat > "$submodule/CONSTITUTION.md" <<EOF
-# Constitution Reference
-
-This submodule follows [HelixPlay Constitution v2.0.0]($CONSTITUTION_URL).
-
-All rules in Constitution §1-§18 are MANDATORY. No exception.
+# CONSTITUTION.md — ${submodule}
 
 > **Source of truth:** [$CONSTITUTION_URL]($CONSTITUTION_URL)
+>
+> This submodule adopts the HelixPlay Constitution v2.1.0 in full.
+> All clauses §1-§18 are binding. No local weakening permitted.
 EOF
 
-    echo "  Done."
+    echo "  Updated CLAUDE.md, AGENTS.md, CONSTITUTION.md"
 done
 
 echo ""
-echo "Propagation complete. All ${#SUBMODULES[@]} submodules processed."
+echo "Constitution v2.1.0 propagation complete."
+echo "Next: git add + commit in each submodule, then push."
