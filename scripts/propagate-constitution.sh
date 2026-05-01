@@ -16,6 +16,16 @@ echo "Propagating Constitution v2.1.0 to ${#SUBMODULES[@]} submodules..."
 echo "Constitution URL: $CONSTITUTION_URL"
 echo ""
 
+PRIME_DIRECTIVE="> **NON-NEGOTIABLE PRIME DIRECTIVE:**
+> **\"We had been in position that all tests do execute with success and
+> all Challenges as well, but in reality the most of the features does
+> not work and can't be used! This MUST NOT be the case and execution
+> of tests and Challenges MUST guarantee the quality, the completion
+> and full usability by end users of the product!\"**
+> This statement is the foundational requirement of this project. Any
+> agent dispatch, any CI configuration, any code review that allows
+> green tests on broken features is a violation and MUST be rejected."
+
 for submodule in "${SUBMODULES[@]}"; do
     echo "Processing $submodule..."
 
@@ -26,6 +36,8 @@ for submodule in "${SUBMODULES[@]}"; do
 
     cat > "$submodule/CLAUDE.md" <<EOF
 # CLAUDE.md — ${submodule}
+
+$PRIME_DIRECTIVE
 
 > **Constitution v2.1.0**: [Read the Constitution]($CONSTITUTION_URL)
 > All rules in Constitution §1-§18 are MANDATORY. No exception.
@@ -51,6 +63,8 @@ EOF
 
     cat > "$submodule/AGENTS.md" <<EOF
 # AGENTS.md — ${submodule}
+
+$PRIME_DIRECTIVE
 
 > **Constitution v2.1.0**: [Read the Constitution]($CONSTITUTION_URL)
 > All rules in Constitution §1-§18 are MANDATORY. No exception.

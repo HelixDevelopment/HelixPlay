@@ -2,6 +2,18 @@
 
 > **Slogan:** "Ultimate gaming experience!"
 >
+> **NON-NEGOTIABLE PRIME DIRECTIVE:**
+> **"We had been in position that all tests do execute with success and
+> all Challenges as well, but in reality the most of the features does
+> not work and can't be used! This MUST NOT be the case and execution
+> of tests and Challenges MUST guarantee the quality, the completion
+> and full usability by end users of the product!"**
+> This statement is not historical colour. It is the foundational
+> requirement from which every clause in this document flows. Any
+> interpretation, any agent dispatch, any CI configuration, any code
+> review that allows green tests on broken features is a violation of
+> this Prime Directive and MUST be rejected.
+>
 > **Authority:** This document is the single source of truth for the
 > non-negotiable rules of the HelixPlay project. It is derived from
 > `docs/research/chapters/MVP/04_Request.md` and supersedes any guidance
@@ -15,6 +27,8 @@
 > reference this Constitution from its own `CLAUDE.md`, `AGENTS.md`, and
 > `CONSTITUTION.md` (creating those files if absent). Reference is by
 > stable URL, not by copy-paste, so updates propagate automatically.
+> **This Prime Directive MUST appear verbatim in every submodule's
+> `CLAUDE.md` and `AGENTS.md` as the first block after the title.**
 >
 > **Stable URL (after first push):**
 > `https://github.com/HelixDevelopment/HelixPlay/blob/main/docs/research/chapters/MVP/05_Response/01_Constitution.md`
@@ -23,20 +37,22 @@
 
 ## 0. Preamble
 
-The HelixPlay project has, in prior iterations on sister codebases
-(see CLAUDE.md, "We had been in position that all tests do execute with
-success and all Challenges as well, but in reality the most of the
-features does not work and can't be used!"), suffered from **green tests
-on broken features**. This Constitution exists to make that failure mode
-structurally impossible.
+The HelixPlay project has, in prior iterations, suffered from **green
+tests on broken features**. Tests passed. Challenges passed. Coverage
+metrics were green. Yet end users could not use the product. This is
+the failure mode that this Constitution makes **structurally
+impossible**.
 
-**User Mandate 2026-04-30:** All submodules MUST respect DRY, KISS, and
-Top 10 principles. Lazy initialization is the default (§5.2). Anti-bluff
-tests MUST guarantee real end-user usability — green tests without
-working features are a Constitution §1 violation. 100% coverage across
-all ten test types is mandatory. Challenges + HelixQA integration is
-mandatory. All submodules MUST contain Constitution, CLAUDE.md,
-AGENTS.md with these clauses baked in.
+**User Mandate 2026-04-30 (reaffirmed 2026-05-01):** All submodules
+MUST respect DRY, KISS, and Top 10 principles. Lazy initialization is
+the default (§5.2). **Execution of tests and Challenges MUST guarantee
+the quality, the completion and full usability by end users of the
+product.** A test that passes while the corresponding feature is
+non-functional is a Constitution §1 violation, regardless of coverage
+metrics. 100% coverage across all ten test types is mandatory.
+Challenges + HelixQA integration is mandatory. All submodules MUST
+contain Constitution, CLAUDE.md, AGENTS.md with these clauses baked
+in.
 
 The Constitution is short, normative, and uncompromising. Where the
 phrase **MUST**, **MUST NOT**, **SHALL**, or **SHALL NOT** appears, it is
