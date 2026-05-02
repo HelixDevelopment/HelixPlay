@@ -4,7 +4,7 @@ import (
     "sync"
     "time"
     
-    "github.com/HelixDevelopment/HelixPlay/vasic-digital/Memory/pkg/memfd"
+    "digital.vasic.memory/pkg/memfd"
 )
 
 type USBPoller struct {

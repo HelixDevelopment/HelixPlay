@@ -1,0 +1,341 @@
+syntax = "proto3";
+package hostagent.v1;
+
+option go_package = "github.com/HelixDevelopment/HelixPlay/pkg/protocol/v1;hostagentv1";
+
+// HostAgentService manages host lifecycle, games, sessions, and recordings
+service HostAgentService {
+  // Lifecycle
+  rpc RegisterHost(RegisterHostRequest) returns (Host);
+  rpc UpdateHostStatus(UpdateHostStatusRequest) returns (Host);
+  rpc DeregisterHost(DeregisterHostRequest) returns (Empty);
+
+  // Game management
+  rpc ListInstalledGames(ListInstalledGamesRequest) returns (ListInstalledGamesResponse);
+  rpc LaunchGame(LaunchGameRequest) returns (LaunchGameResponse);
+  rpc TerminateGame(TerminateGameRequest) returns (TerminateGameResponse);
+  rpc GetGameStatus(GetGameStatusRequest) returns (GameStatus);
+
+  // Session management
+  rpc CreateSession(CreateSessionRequest) returns (Session);
+  rpc GetSession(GetSessionRequest) returns (Session);
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+  rpc TerminateSession(TerminateSessionRequest) returns (Session);
+
+  // Capability
+  rpc AdvertiseCapabilities(AdvertiseCapabilitiesRequest) returns (CapabilityAck);
+  rpc GetCapabilities(GetCapabilitiesRequest) returns (CapabilitiesSnapshot);
+
+  // Recording
+  rpc StartRecording(StartRecordingRequest) returns (Recording);
+  rpc StopRecording(StopRecordingRequest) returns (Recording);
+  rpc ListRecordings(ListRecordingsRequest) returns (ListRecordingsResponse);
+
+  // Telemetry
+  rpc StreamHostTelemetry(StreamHostTelemetryRequest) returns (stream TelemetryFrame);
+  rpc GetHostMetrics(GetHostMetricsRequest) returns (HostMetrics);
+
+  // Health
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+message RegisterHostRequest {
+  string fingerprint = 1;
+  string hostname = 2;
+  string os = 3;
+  string os_version = 4;
+  string agent_version = 5;
+  string tenant_id = 6;
+  string bootstrap_token = 7;
+  string region = 8;
+}
+
+message Host {
+  string host_id = 1;
+  string name = 2;
+  string hardware_id = 3;
+  string os = 4;
+  string os_version = 5;
+  string status = 6;
+  string lan_ip = 7;
+  string wan_endpoint = 8;
+  int32 discovery_port = 9;
+  bool thermal_throttle = 10;
+  string created_at = 11;
+  string last_seen_at = 12;
+}
+
+message UpdateHostStatusRequest {
+  string host_id = 1;
+  string status = 2;
+  repeated GPUState gpu_states = 3;
+  int32 active_session_count = 4;
+  int64 timestamp_ns = 5;
+}
+
+message GPUState {
+  int32 index = 1;
+  int32 utilization_pct = 2;
+  int32 temp_c = 3;
+  int32 vram_used_mb = 4;
+  int32 vram_total_mb = 5;
+}
+
+message DeregisterHostRequest {
+  string host_id = 1;
+  string reason = 2;
+}
+
+message Empty {}
+
+message ListInstalledGamesRequest {
+  string host_id = 1;
+  string store = 2;
+  bool include_metadata = 3;
+}
+
+message ListInstalledGamesResponse {
+  repeated Game games = 1;
+  string last_scan_at = 2;
+  bool scan_in_progress = 3;
+}
+
+message Game {
+  string game_id = 1;
+  string store_id = 2;
+  string store_type = 3;
+  string title = 4;
+  string description = 5;
+  string cover_art_url = 6;
+  repeated string screenshot_urls = 7;
+  repeated string genres = 8;
+  bool is_installed = 9;
+}
+
+message LaunchGameRequest {
+  string host_id = 1;
+  string game_id = 2;
+  string launch_args = 3;
+  map<string, string> env_vars = 4;
+  string priority = 5;
+}
+
+message LaunchGameResponse {
+  int64 process_id = 1;
+  string status = 2;
+  bool session_ready = 3;
+}
+
+message TerminateGameRequest {
+  string host_id = 1;
+  string game_id = 2;
+  bool force = 3;
+}
+
+message TerminateGameResponse {
+  string status = 1;
+}
+
+message GetGameStatusRequest {
+  string host_id = 1;
+  string game_id = 2;
+}
+
+message GameStatus {
+  string status = 1;
+  int64 process_id = 2;
+  int32 uptime_seconds = 3;
+}
+
+message CreateSessionRequest {
+  string host_id = 1;
+  string client_id = 2;
+  string user_id = 3;
+  string game_id = 4;
+  string preferred_codec = 5;
+  string preferred_transport = 6;
+  Resolution resolution = 7;
+  int32 refresh_rate = 8;
+  bool recording_enabled = 9;
+}
+
+message Session {
+  string session_id = 1;
+  string user_id = 2;
+  string host_id = 3;
+  string game_id = 4;
+  string status = 5;
+  string codec = 6;
+  string transport = 7;
+  string resolution = 8;
+  int32 refresh_hz = 9;
+  float latency_p50_ms = 10;
+  float latency_p99_ms = 11;
+  float latency_p999_ms = 12;
+  string started_at = 13;
+  string ended_at = 14;
+}
+
+message Resolution {
+  int32 width = 1;
+  int32 height = 2;
+}
+
+message GetSessionRequest {
+  string session_id = 1;
+}
+
+message ListSessionsRequest {
+  string host_id = 1;
+  string user_id = 2;
+  string status = 3;
+}
+
+message ListSessionsResponse {
+  repeated Session sessions = 1;
+}
+
+message TerminateSessionRequest {
+  string host_id = 1;
+  string session_id = 2;
+  string reason = 3;
+  bool force = 4;
+}
+
+message AdvertiseCapabilitiesRequest {
+  string host_id = 1;
+  CapabilitiesSnapshot capabilities = 2;
+}
+
+message CapabilitiesSnapshot {
+  repeated GPUCapability gpus = 1;
+  repeated string codecs = 2;
+  repeated string transports = 3;
+  Resolution max_resolution = 4;
+  int32 max_refresh_rate = 5;
+  repeated string hdr_formats = 6;
+}
+
+message GPUCapability {
+  int32 index = 1;
+  string vendor = 2;
+  string model = 3;
+  string encoder = 4;
+  repeated string codecs = 5;
+  int32 vram_gb = 6;
+  int32 thermal_c = 7;
+}
+
+message CapabilityAck {
+  string capability_id = 1;
+  string expires_at = 2;
+}
+
+message GetCapabilitiesRequest {
+  string host_id = 1;
+}
+
+message StartRecordingRequest {
+  string host_id = 1;
+  string session_id = 2;
+  string quality_preset = 3;
+  string container_format = 4;
+}
+
+message Recording {
+  string recording_id = 1;
+  string session_id = 2;
+  string user_id = 3;
+  string format = 4;
+  string codec = 5;
+  string quality_preset = 6;
+  float file_size_gb = 7;
+  int32 duration_sec = 8;
+  string local_path = 9;
+  string cloud_sync_status = 10;
+  string cloud_url = 11;
+}
+
+message StopRecordingRequest {
+  string host_id = 1;
+  string session_id = 2;
+}
+
+message ListRecordingsRequest {
+  string host_id = 1;
+  string user_id = 2;
+}
+
+message ListRecordingsResponse {
+  repeated Recording recordings = 1;
+}
+
+message StreamHostTelemetryRequest {
+  string host_id = 1;
+  string session_id = 2;
+  repeated string metric_types = 3;
+  int32 sample_interval_ms = 4;
+}
+
+message TelemetryFrame {
+  int64 timestamp_ns = 1;
+  repeated GPUMetric gpu_metrics = 2;
+  ThermalMetric thermal_metrics = 3;
+  EncoderMetric encoder_metrics = 4;
+  NetworkMetric network_metrics = 5;
+}
+
+message GPUMetric {
+  int32 index = 1;
+  int32 utilization_pct = 2;
+  int32 temp_c = 3;
+  int32 vram_used_mb = 4;
+  int32 vram_total_mb = 5;
+}
+
+message ThermalMetric {
+  int32 cpu_temp_c = 1;
+  int32 chassis_temp_c = 2;
+  repeated int32 fan_rpm = 3;
+}
+
+message EncoderMetric {
+  string codec = 1;
+  int32 bitrate_kbps = 2;
+  int32 fps = 3;
+  int32 dropped_frames = 4;
+}
+
+message NetworkMetric {
+  int64 bytes_sent = 1;
+  int64 bytes_received = 2;
+  int32 retransmits = 3;
+}
+
+message GetHostMetricsRequest {
+  string host_id = 1;
+}
+
+message HostMetrics {
+  string host_id = 1;
+  int64 timestamp_ns = 2;
+  repeated GPUMetric gpu_metrics = 3;
+  ThermalMetric thermal_metrics = 4;
+  EncoderMetric encoder_metrics = 5;
+  NetworkMetric network_metrics = 6;
+}
+
+message HealthRequest {
+  string component = 1;
+}
+
+message HealthResponse {
+  string status = 1;
+  repeated HealthCheck checks = 2;
+}
+
+message HealthCheck {
+  string name = 1;
+  string status = 2;
+  string detail = 3;
+}

@@ -70,3 +70,69 @@
 [submodule "Catalogizer"]
 	path = Catalogizer
 	url = git@github.com:vasic-digital/Catalogizer.git
+[submodule "WebSocket-Client-TS"]
+	path = WebSocket-Client-TS
+	url = git@github.com:vasic-digital/WebSocket-Client-TS.git
+[submodule "Config"]
+	path = Config
+	url = git@github.com:vasic-digital/Config.git
+[submodule "Filesystem"]
+	path = Filesystem
+	url = git@github.com:vasic-digital/Filesystem.git
+[submodule "Watcher"]
+	path = Watcher
+	url = git@github.com:vasic-digital/Watcher.git
+[submodule "Assets"]
+	path = Assets
+	url = git@github.com:vasic-digital/Assets.git
+[submodule "Auth-Context-React"]
+	path = Auth-Context-React
+	url = git@github.com:vasic-digital/Auth-Context-React.git
+[submodule "Catalogizer-API-Client-TS"]
+	path = Catalogizer-API-Client-TS
+	url = git@github.com:vasic-digital/Catalogizer-API-Client-TS.git
+[submodule "Collection-Manager-React"]
+	path = Collection-Manager-React
+	url = git@github.com:vasic-digital/Collection-Manager-React.git
+[submodule "DocProcessor"]
+	path = DocProcessor
+	url = git@github.com:HelixDevelopment/DocProcessor.git
+[submodule "Entities"]
+	path = Entities
+	url = git@github.com:vasic-digital/Entities.git
+[submodule "Lazy"]
+	path = Lazy
+	url = git@github.com:vasic-digital/Lazy.git
+[submodule "LLMOrchestrator"]
+	path = LLMOrchestrator
+	url = git@github.com:HelixDevelopment/LLMOrchestrator.git
+[submodule "LLMProvider"]
+	path = LLMProvider
+	url = git@github.com:HelixDevelopment/LLMProvider.git
+[submodule "Media-Browser-React"]
+	path = Media-Browser-React
+	url = git@github.com:vasic-digital/Media-Browser-React.git
+[submodule "Media-Player-React"]
+	path = Media-Player-React
+	url = git@github.com:vasic-digital/Media-Player-React.git
+[submodule "Media-Types-TS"]
+	path = Media-Types-TS
+	url = git@github.com:vasic-digital/Media-Types-TS.git
+[submodule "ReplayBuffer"]
+	path = ReplayBuffer
+	url = git@github.com:vasic-digital/ReplayBuffer.git
+[submodule "TrainingCollector"]
+	path = TrainingCollector
+	url = git@github.com:vasic-digital/TrainingCollector.git
+[submodule "VisionEngine"]
+	path = VisionEngine
+	url = git@github.com:HelixDevelopment/VisionEngine.git
+[submodule "Dashboard-Analytics-React"]
+	path = Dashboard-Analytics-React
+	url = git@github.com:vasic-digital/Dashboard-Analytics-React.git
+[submodule "ScreenDiff"]
+	path = ScreenDiff
+	url = git@github.com:vasic-digital/ScreenDiff.git
+[submodule "VisualRegression"]
+	path = VisualRegression
+	url = git@github.com:vasic-digital/VisualRegression.git

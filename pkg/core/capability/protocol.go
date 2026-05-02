@@ -1,4 +1,4 @@
-package core
+package capability
 
 type Capabilities struct {
     Codecs           []string
@@ -42,13 +42,20 @@ func (n *Negotiator) Negotiate(client, server Capabilities) NegotiationResult {
         }
     }
     
-    // Pick best resolution
+    // Pick best resolution (intersection of client and server)
     resolution := "1080p" // Default
+    clientResSet := make(map[string]bool)
+    for _, cr := range client.Resolutions {
+        clientResSet[cr] = true
+    }
+outer:
     for _, r := range []string{"4K", "1440p", "1080p", "720p"} {
-        for _, sr := range server.Resolutions {
-            if r == sr {
-                resolution = r
-                break
+        if clientResSet[r] {
+            for _, sr := range server.Resolutions {
+                if r == sr {
+                    resolution = r
+                    break outer
+                }
             }
         }
     }

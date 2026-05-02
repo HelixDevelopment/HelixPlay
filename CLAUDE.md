@@ -12,7 +12,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Source of truth for project rules:** [`docs/research/chapters/MVP/05_Response/01_Constitution.md`](docs/research/chapters/MVP/05_Response/01_Constitution.md) **v2.1.0**.
+> **Source of truth for project rules:** [`docs/research/chapters/MVP/05_Response/01_Constitution.md`](docs/research/chapters/MVP/05_Response/01_Constitution.md) **v2.2.0**.
 > Where this file and the Constitution conflict, the Constitution wins. The
 > Constitution codifies clauses **R-01..R-18** drawn from `04_Request.md`,
 > plus **R-18 (Operational Integrity)** added 2026-04-28 after a session-
@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > See Constitution §11.5 for the forbidden-commands list and the container
 > hazards inventory.
 >
-> **Constitution v2.1.0 amendments (2026-05-01):**
+> **Constitution v2.2.0 amendments (2026-05-02):**
 > 1. Anti-bluff tests MUST guarantee real, end-user-usable behaviour. Execution of
 >    tests and Challenges MUST confirm that all tested codebase really works as
 >    expected and can be used by end users. Patterns such as `assert.True(t, true)`,
@@ -38,6 +38,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 >    now call `RecordAction()`.
 > 5. Container verifier `execCommand()` no longer a no-op; TCP/HTTP health checks
 >    now execute real commands.
+> 6. **The 18 Contract Clauses (R-01..R-18)** codified in Constitution §17 —
+>    explicit mapping of every requirement to its constitutional section.
+> 7. **Eight Architectural Pillars** codified in Constitution §18 — binding
+>    architectural decisions that may not be contradicted without §13 exception.
+> 8. **Performance SLAs** codified in Constitution §19 — glass-to-glass latency
+>    budget (<=30ms LAN, <=50ms WAN at p999) is a binding target, not aspirational.
+> 9. **Technology Stack** codified in Constitution §20 — mandatory technology choices
+>    that require §13 exception to substitute.
+> 10. **Implementation Roadmap** codified in Constitution §21 — 14 phases (P00–P13)
+>     with defined exit criteria; skipping or simplifying criteria is a §1 violation.
+> 11. **Observable behaviour assertion ratio** per §1.2 — at least 60% of assertions
+>     in any test file must verify observable behaviour.
+> 12. **Mutation score >= 85%** per §6.4 — enforced by `mutation_ratchet_challenge.sh`.
 >
 > **Synthesis programme master plan:** [`docs/research/chapters/MVP/05_Response/00_Master_Plan.md`](docs/research/chapters/MVP/05_Response/00_Master_Plan.md).
 > All chapter work, line targets, dispatch templates, and the work queue

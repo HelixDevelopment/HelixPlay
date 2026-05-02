@@ -3,11 +3,11 @@ package input_test
 import (
     "testing"
     "github.com/HelixDevelopment/HelixPlay/cmd/host-agent/input"
-    "github.com/HelixDevelopment/HelixPlay/vasic-digital/Memory/pkg/memfd"
+    "digital.vasic.memory/pkg/memfd"
 )
 
 func TestUSBPollingStart(t *testing.T) {
-    ringBuf, _ := memfd.NewPSC(1024)
+    ringBuf := memfd.NewPSC(1024)
     usb := input.NewUSBPoller(ringBuf, 1000) // 1 kHz = 1000 Hz
     if err := usb.Start(); err != nil {
         t.Fatalf("Start failed: %v", err)
@@ -18,7 +18,7 @@ func TestUSBPollingStart(t *testing.T) {
 }
 
 func TestUSBPollingStop(t *testing.T) {
-    ringBuf, _ := memfd.NewPSC(1024)
+    ringBuf := memfd.NewPSC(1024)
     usb := input.NewUSBPoller(ringBuf, 1000)
     usb.Start()
     usb.Stop()
@@ -28,15 +28,13 @@ func TestUSBPollingStop(t *testing.T) {
 }
 
 func TestUSBPollData(t *testing.T) {
-    ringBuf, _ := memfd.NewPSC(1024)
+    ringBuf := memfd.NewPSC(1024)
     usb := input.NewUSBPoller(ringBuf, 1000)
     usb.Start()
-    
-    // Write some test data to ring buffer
+
     data := []byte{0x01, 0x02, 0x03}
     ringBuf.Write(data)
-    
-    // Read back
+
     readData := make([]byte, len(data))
     n, _ := ringBuf.Read(readData)
     if n != len(data) {

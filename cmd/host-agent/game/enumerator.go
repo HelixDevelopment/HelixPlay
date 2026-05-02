@@ -9,6 +9,7 @@ type Game struct {
     Title        string
     Store        string
     BinaryPath   string
+    InstallDir   string
     Metadata     GameMetadata
 }
 

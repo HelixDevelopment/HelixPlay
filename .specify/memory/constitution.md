@@ -1,6 +1,18 @@
-# HelixPlay Project Constitution
+# HelixPlay Project Constitution v2.2.0
 
 > **Slogan:** "Ultimate gaming experience!"
+>
+> **NON-NEGOTIABLE PRIME DIRECTIVE:**
+> **"We had been in position that all tests do execute with success and
+> all Challenges as well, but in reality the most of the features does
+> not work and can't be used! This MUST NOT be the case and execution
+> of tests and Challenges MUST guarantee the quality, the completion
+> and full usability by end users of the product!"**
+> This statement is not historical colour. It is the foundational
+> requirement from which every clause in this document flows. Any
+> interpretation, any agent dispatch, any CI configuration, any code
+> review that allows green tests on broken features is a violation of
+> this Prime Directive and MUST be rejected.
 >
 > **Authority:** This document is the single source of truth for the
 > non-negotiable rules of the HelixPlay project. It is derived from
@@ -15,28 +27,32 @@
 > reference this Constitution from its own `CLAUDE.md`, `AGENTS.md`, and
 > `CONSTITUTION.md` (creating those files if absent). Reference is by
 > stable URL, not by copy-paste, so updates propagate automatically.
+> **This Prime Directive MUST appear verbatim in every submodule's
+> `CLAUDE.md` and `AGENTS.md` as the first block after the title.**
 >
 > **Stable URL (after first push):**
 > `https://github.com/HelixDevelopment/HelixPlay/blob/main/docs/research/chapters/MVP/05_Response/01_Constitution.md`
- 
-> **User Mandate 2026-04-30:** All submodules MUST respect DRY, KISS, and Top 10 principles.
-> Lazy initialization is the default (§5.2). Anti-bluff tests MUST guarantee
-> real end-user usability — green tests without working features are a
-> Constitution §1 violation. 100% coverage across all ten test types
-> is mandatory. Challenges + HelixQA integration is mandatory.
-> All submodules MUST contain Constitution, CLAUDE.md, AGENTS.md with
-> these clauses baked in.
- 
+
 ---
 
 ## 0. Preamble
 
-The HelixPlay project has, in prior iterations on sister codebases
-(see CLAUDE.md, "We had been in position that all tests do execute with
-success and all Challenges as well, but in reality the most of the
-features does not work…"), suffered from **green tests on broken
-features**. This Constitution exists to make that failure mode
-structurally impossible.
+The HelixPlay project has, in prior iterations, suffered from **green
+tests on broken features**. Tests passed. Challenges passed. Coverage
+metrics were green. Yet end users could not use the product. This is
+the failure mode that this Constitution makes **structurally
+impossible**.
+
+**User Mandate 2026-04-30 (reaffirmed 2026-05-01):** All submodules
+MUST respect DRY, KISS, and Top 10 principles. Lazy initialization is
+the default (§5.2). **Execution of tests and Challenges MUST guarantee
+the quality, the completion and full usability by end users of the
+product.** A test that passes while the corresponding feature is
+non-functional is a Constitution §1 violation, regardless of coverage
+metrics. 100% coverage across all ten test types is mandatory.
+Challenges + HelixQA integration is mandatory. All submodules MUST
+contain Constitution, CLAUDE.md, AGENTS.md with these clauses baked
+in.
 
 The Constitution is short, normative, and uncompromising. Where the
 phrase **MUST**, **MUST NOT**, **SHALL**, or **SHALL NOT** appears, it is
@@ -66,7 +82,24 @@ codebase, documentation, configuration, or scripting:
 - Tests that pass without exercising the system. Tests whose failure
   mode is "the test framework crashed" or "the assertion was vacuously
   true." Tests whose green result does not imply that an end user can
-  use the feature.
+  use the feature. This explicitly includes patterns such as
+  `assert.True(t, true)`, `assert.NotNil(t, nil)`, and any assertion
+  that is tautologically true or that asserts on mock call counts
+  rather than observable behaviour.
+- Constructor-only tests (`TestNew*`) that assert only `assert.NotNil(t, r)`
+  without exercising any behaviour of the created object. A test MUST
+  verify that the constructed object performs its contract, not merely
+  that allocation succeeded.
+- Mock-only integration or E2E tests. Per §6.1, only Unit tests may use
+  mocks; Integration and E2E tests MUST exercise real system components.
+  Tests in `tests/integration/` or `tests/e2e/` that assert on mock call
+  counts rather than observable HTTP responses, database state, or rendered
+  output are Constitution §1 violations.
+- Permanently skipped tests (`t.Skip`) that lack a dated, actionable
+  containerization plan in the skip message. A skip is permitted only
+  when the required dependency is being containerized in a tracked ticket,
+  or when the skip is gated by a build tag (`//go:build e2e_binary`) that
+  CI explicitly exercises. Legacy untriaged skips are forbidden.
 - Phrases used to dodge specifying behaviour: "and similar", "etc."
   (in normative text), "as appropriate", "as needed", "where reasonable".
   These are allowed in prose only when they describe past evidence,
@@ -77,6 +110,26 @@ codebase, documentation, configuration, or scripting:
   why the cell is genuinely not applicable.
 - Documentation paragraphs whose claims are not supported by either
   source code, source research artifacts, or a cited URL/RFC/paper.
+
+### 1.1.1 Forbidden Patterns Summary Table
+
+The following table summarises the forbidden patterns from §1.1 for quick reference during code review and CI scanning:
+
+| Pattern | Severity | Detection Method | Example |
+|---------|----------|-----------------|---------|
+| Empty function body `{}` | **CRITICAL** | Static AST scan | `func (s *Server) Handle() {}` |
+| `panic("not implemented")` stub | **CRITICAL** | Regex scan | `panic("not implemented")` |
+| `return nil, fmt.Errorf("not implemented")` | **CRITICAL** | Regex scan | `return nil, errors.New("not implemented")` |
+| `TODO` comment without issue reference | **WARNING** | Regex scan | `// TODO: fix this` |
+| `FIXME` comment without issue reference | **WARNING** | Regex scan | `// FIXME: broken` |
+| `XXX` or `HACK` comments | **WARNING** | Regex scan | `// HACK: workaround` |
+| Standalone `tbd` or `TBD` | **WARNING** | Word-boundary scan | `status = tbd` |
+| Vacuous assertion `assert.True(t, true)` | **BLOCKER** | Regex + AST | Asserts a tautology; always passes |
+| Constructor-only `require.NotNil(t, obj)` | **CRITICAL** | Heuristic | Verifies allocation, not behavior |
+| Mock-only integration/E2E test | **CRITICAL** | Heuristic | Tests mock wiring, not real integration |
+| No negative-leg test | **CRITICAL** | Challenge runner | Feature works but no failure detection |
+| Empty test body `func TestX(t *testing.T) {}` | **BLOCKER** | AST scan | Passes without executing code |
+| Test with no assertions | **CRITICAL** | AST scan | Executes code but never checks results |
 
 ### 1.2 What is required
 
@@ -92,6 +145,13 @@ For every feature, every fix, every refactor, every documentation page:
    changes.
 4. The change is reviewed by at least one party other than the author,
    and that party explicitly confirms they ran the verifying test.
+5. **Usability evidence.** For every feature, there exists evidence that
+   an end user can successfully use it. Acceptable evidence forms:
+   a HelixQA visual assertion (screenshot or video), a manually recorded
+   session linked in the ticket, or a Challenge scenario that exercises
+   the full user flow. Code-level tests alone are insufficient if they
+   do not prove end-user usability.
+5. **Observable behaviour assertion ratio.** At least 60% of assertions in any test file MUST verify observable behaviour (HTTP responses, database state, rendered frames, file content, network packets). The remaining 40% may verify internal state for diagnostic purposes. An assertion is observable when it checks something an end user or external system could notice without knowledge of the implementation.
 
 ### 1.3 Enforcement
 
@@ -103,9 +163,33 @@ A pre-merge CI lane (`anti-bluff-scan`, defined in
   one non-Unit test type.
 - A "documentation change must include verification block" check on any
   `05_Response/` modification.
+- A **behavioural-assertion audit** that fails if any test in
+  `tests/integration/` or `tests/e2e/` asserts on mock call counts or
+  uses `httptest.NewServer` with hardcoded in-memory state instead of
+  a real production-equivalent system.
+- An **automatic negative-leg fault-injection** sub-lane: for each
+  feature, CI temporarily removes or inverts the feature code (e.g.
+  hardcodes `return errors.New("injected")`, reverses a boolean,
+  severs a dependency) and verifies that at least one non-Unit test
+  fails. If no test fails, the lane fails and the feature is blocked
+  from merge.
+- A **usability-evidence check** that verifies every feature PR links
+  to HelixQA visual assertion, manual recording, or Challenge scenario
+  evidence.
 
 The lane's failure is non-overridable. Bypass requires a documented
 exception via §13.
+
+#### 1.3.1 Enforcement mechanisms summary
+
+| Layer | Mechanism | Responsibility |
+|-------|-----------|----------------|
+| **CI (non-overridable)** | `scripts/anti-bluff-scan.sh` runs on every PR/commit. Scans for all forbidden patterns. Fails the build on any match. | R-01, R-11 |
+| **Challenge framework** | `ValidateAntiBluff()` gate called unconditionally for every Challenge result. | R-01 |
+| **Mutation testing** | `go-mutesting` with branch/if, expression/remove, statement/remove mutators. Timeout 60s per mutant. | R-01 |
+| **Negative-leg injection** | CI deliberately breaks each feature (e.g., invert a condition) and verifies non-Unit tests fail. | R-10 |
+| **HelixQA autonomous** | OpenCV-based visual assertion — verifies the screen actually shows what the test claims. | R-01 |
+| **Session stop hook** | `.claude/settings.json` runs `scripts/claim-check.sh` on Stop — prevents forbidden commands. | R-18 |
 
 ---
 
@@ -345,16 +429,47 @@ can use the feature it covers. To qualify:
   production.
 - The assertion includes a **negative leg**: removing the feature
   must cause the test to fail. (This is the structural defence
-  against vacuous tests.)
+  against vacuous tests.) The negative leg MUST be exercised
+  automatically in CI via fault injection (see §1.3). Acceptable
+  fault-injection techniques include: reversing a boolean return,
+  hardcoding an error return, severing a required dependency
+  connection, or replacing a real implementation with a broken stub.
+  If a test continues to pass after material breakage, it is vacuous
+  and the feature is blocked from merge.
 - The test's reason for failure, when it does fail, must be
   diagnostic — a log fragment or screenshot lands in the artifacts
   bundle.
+- **Execution of tests and Challenges MUST guarantee the quality, the
+  completion and full usability by end users of the product.** A test
+  suite that passes while the corresponding feature is non-functional
+  is a Constitution §1 violation, regardless of coverage metrics.
+
+### 6.7 Usability Verification (R-02 amendment 2026-05-01)
+
+Every feature MUST carry end-user usability evidence in one of the
+following forms:
+
+1. **HelixQA visual assertion** — a screenshot or screen recording
+   generated by the autonomous QA system showing the feature working
+   in a production-equivalent topology.
+2. **Manual recording** — a dated screen recording or annotated
+   screenshot series linked from the ticket, verified by a second
+   party.
+3. **Challenge scenario** — a Challenge that exercises the complete
+   user flow end-to-end, with non-empty `RecordedActions` and at
+   least one passing assertion per §11.5.7.
+
+A test suite that reports 100% coverage but provides no usability
+evidence is a Constitution §1 violation. Coverage metrics measure
+code execution; usability evidence measures whether an end user can
+successfully use the feature. Both are mandatory.
 
 ### 6.4 Coverage gate
 
 Every submodule's CI MUST enforce **100% line, branch, and function
 coverage across the union of test types** — not unit-only coverage.
 The gate is non-overridable.
+- **Mutation score** >= 85% measured by `go-mutesting` with branch/case, branch/if, expression/remove, statement/remove, numbers/incrementer, and numbers/decrementer mutators. Timeout 60s per mutant. The `mutation_ratchet_challenge.sh` fails if the score drops below 85%.
 
 ### 6.5 HelixQA integration
 
@@ -482,6 +597,10 @@ origin      fetch=github, push=gitflic
 - Documentation work happens on `docs/<short-name>` branches.
 - Branch protection MUST require the full CI matrix to be green
   before merge.
+- Branch protection MUST explicitly gate on the `anti-bluff-scan`
+  CI lane per §1.3. A green `anti-bluff-scan` is a mandatory
+  precondition for merge; its failure cannot be overridden by
+  coverage gates, human review, or admin privileges.
 
 ### 9.4 Commits
 
@@ -728,14 +847,30 @@ crash) for reasons outside our control, recovery posture is:
 #### 11.5.7 Anti-bluff testing reinforcement (cross-link §1, §6.3)
 
 Reaffirmed because the operator emphasised it after the Session-3
-incident: **green tests must guarantee real, end-user-usable
-behaviour**. A test that passes without exercising the system is a
-Constitution §1 violation regardless of how convenient the green
-result is. Every submodule's CI MUST include a "negative leg" test
+incident and again on 2026-04-30: **green tests must guarantee real,
+end-user-usable behaviour**. A test that passes without exercising the
+system is a Constitution §1 violation regardless of how convenient the
+green result is. Every submodule's CI MUST include a "negative leg" test
 per Constitution §6.3 — removing the feature must cause the test to
 fail. Constitution §6.3 already mandates this; this sub-clause
 ensures the rule is propagated to every submodule's CONSTITUTION.md
 when those submodules come into existence.
+
+**Additional mandate (2026-05-01):** The Challenges runner's
+`ValidateAntiBluff` gate MUST be unconditional. Environment variables
+such as `CHALLENGE_ANTIBLUFF_STRICT` that disable the gate are
+forbidden. A Challenge result claiming Status=Passed MUST always carry
+positive evidence (non-empty RecordedActions + at least one passing
+assertion).
+
+**Negative-leg automation (2026-05-01):** Every feature MUST have its
+negative leg exercised automatically in CI, not merely per submodule.
+The fault-injection harness (see §1.3 and §6.3) operates per feature,
+not per submodule. A submodule may have 100% coverage and pass all
+existing tests, but if none of its tests fail when a feature is
+materially broken, that feature is not verified and the merge is
+blocked. The anti-bluff-scan lane MUST include this per-feature
+negative-leg verification.
 
 ---
 
@@ -848,6 +983,136 @@ Constitution. There is no opt-out. There are no exceptions to §1
 
 ---
 
+## 17. The 18 Contract Clauses (R-01..R-18)
+
+These clauses are derived from `04_Request.md` and codified throughout this Constitution. They are **non-negotiable** — no contributor (human or AI) may override them without a technically justified exception request with a fixed expiry date per §13.
+
+| ID | Clause | Constitution Section | Implementation Implication |
+|----|--------|---------------------|---------------------------|
+| **R-01** | **Anti-Bluff Enforcement** | §1 | `ValidateAntiBluff` gate is unconditional. CI deliberately breaks each feature and verifies non-Unit tests fail. Forbidden patterns: `assert.True(t, true)`, constructor-only tests, mock-only Integration/E2E, TODO/FIXME, empty function bodies. |
+| **R-02** | **Decoupled Submodule Architecture** | §2 | 24 submodules in polyrepo with four-mirror topology. Target 29 submodules. No circular dependencies. Each submodule builds independently. |
+| **R-03** | **SIV Versioning** | §2 | All submodules use Semantic Import Versioning (`/vN` suffix). No breaking changes within a major version. |
+| **R-04** | **go.work Workspace** | §2 | Root `go.work` file includes all submodules. `go work sync` resolves dependencies. |
+| **R-05** | **Container-First Runtime** | §3 | ALL code runs inside containers. No bare-metal execution in CI or production. Host agent container requires `--privileged` for GPU access (with §13 exception). |
+| **R-06** | **Container Build Matrix** | §3 | Every service has a Dockerfile. Multi-stage builds. distroless or debian:bookworm-slim base. NVIDIA runtime for GPU services. |
+| **R-07** | **Communication Stack** | §4 | gRPC over HTTP/3 (QUIC) for service-to-service. NATS JetStream for async events. Redis for caching/sessions. RabbitMQ for legacy integration. Brotli compression. |
+| **R-08** | **Non-Blocking Concurrency** | §5 | Lazy initialization is the DEFAULT pattern. Semaphores for backpressure. Zero-allocation hot path. `sync.Pool` for object reuse. |
+| **R-09** | **The Ten Test Types** | §6 | Unit (mocks allowed), Integration, E2E, Security, Benchmark, Chaos, Stress, Smoke, FullAuto, Challenges. ONLY Unit may use mocks. 100% coverage target across all types combined. |
+| **R-10** | **Negative-Leg Fault Injection** | §1.3, §6.3 | CI must deliberately break each feature and verify that non-Unit tests fail. No feature ships without a negative-leg test. |
+| **R-11** | **Quality Gates** | §7 | SonarQube (code quality), Snyk (dependencies), Semgrep (static analysis), Trivy (container scanning), gitleaks (secrets), govulncheck (Go CVEs). All gates must pass. |
+| **R-12** | **Dual-Platform Tracking** | §8 | GitHub Projects + GitLab Issues. Every task tracked on both platforms. No untracked work. |
+| **R-13** | **Four-Mirror Source Control** | §9 | GitHub (primary), GitLab, GitVerse, GitFlic. `origin` fetch=github, push=gitflic. All mirrors kept in sync. |
+| **R-14** | **Observability Stack** | §10 | Structured JSON logs, Prometheus metrics, OpenTelemetry traces, event tracking. Every service emits all four signal types. |
+| **R-15** | **Transitive Submodule Completeness** | §2 | All submodules must have complete dependency trees. No missing transitive dependencies. `verify-submodules.py` validates. |
+| **R-16** | **Security & Privacy** | §11 | mTLS between all services. OAuth2/OIDC + Device Authorization Grant (RFC 8628) for auth. RBAC. Audit logging. Anti-cheat clean host (no hooks). |
+| **R-17** | **Documentation Discipline** | §12 | Living documents only. No simplification. No "etc." — exhaustive enumeration. Every design decision traced to a source chapter. |
+| **R-18** | **Operational Integrity (SafeExec)** | §11.5 | No command may suspend, hibernate, lock, terminate, or crash the operator's host. `r18.SafeExec` wrapper validates all system commands. `claim-check.sh` runs on every AI session stop. |
+
+---
+
+## 18. Architectural Pillars
+
+The HelixPlay architecture rests on eight foundational pillars. Every design decision, every line of code, and every test MUST be traceable to at least one pillar.
+
+| # | Pillar | Description | Key Decisions |
+|---|--------|-------------|---------------|
+| **P1** | **Sunshine++ Host Agent** | Evolution of open-source Sunshine. Captures, encodes, and streams games from host PC. Clean host constraint (OS APIs only). | Per-OS capture (DXGI DDA / ScreenCaptureKit / KMS+PipeWire). Hardware encoder factory (NVENC/QSV/AMF/VideoToolbox/VAAPI). |
+| **P2** | **Hybrid Client Triad** | One Go core shared across three client stacks: Wails (desktop), Flutter+Go FFI (mobile/TV), Angular+Go-WASM (web). | Go compiled 3 ways: c-shared (Flutter FFI), native (Wails backend), WASM (browser). Shared business logic: gRPC, protocol negotiation, controller input. |
+| **P3** | **Controller Fidelity Protocol** | Full DualSense feature parity over network: haptics, adaptive triggers, gyro, accelerometer, audio jack passthrough. | 16-32 byte binary protocol. 1000Hz USB polling. Lock-free SPSC ring buffer. Zero-copy IPC via shared memory. WebRTC DataChannel (web) / custom UDP (native). |
+| **P4** | **PS4-Class Catalog as Content Business** | Rich game metadata, 4K assets, search, discovery. Multi-source pipeline (IGDB, SteamGridDB, Steam, RAWG). | Per-tenant catalog overlays. SQLite FTS5 + Meilisearch. 4K WebP/AVIF assets. Lazy loading via CloudFront signed URLs. |
+| **P5** | **White-Label as Architecture** | Gaming-as-a-Service (GaaS) platform. Partners rebrand without code changes. | 3-tier design tokens (primitive > semantic > component). Tenant-scoped: identity, catalog, recordings, billing. Material Design 3 base. Style Dictionary v4. |
+| **P6** | **Edge-First Latency** | Geography matters more than codec. Host within 100km of client. | p999 metric (not p50). LAN <=30ms, WAN <=50ms. Hybrid streaming: WebRTC primary, custom UDP fallback. ABR/FEC/SQP for network adaptation. |
+| **P7** | **Anti-Cheat Clean Host** | OS APIs only. No DLL injection, no kernel hooks, no memory tampering. | DXGI DDA (not frame buffer capture). Signed driver requirement. Capability advertisement lets anti-cheat verify clean host. |
+| **P8** | **GaaS Multi-Tenancy** | Tenant-scoped from day one. Users, games, catalogs, recordings, billing all isolated per tenant. | CockroachDB for multi-region data. Per-tenant OAuth2/OIDC. RBAC with per-tenant roles. Audit logging. |
+
+No architectural decision may contradict these pillars. Any proposed change that weakens a pillar requires a §13 exception with compensating controls.
+
+---
+
+## 19. Performance SLAs
+
+### 19.1 Glass-to-glass latency budget
+
+| Stage | LAN (p999) | WAN (p999) | Owner Submodule |
+|-------|-----------|-----------|-----------------|
+| Controller input (USB poll → network) | 2ms | 15ms | helix-input |
+| Network transit (host → client) | 5ms | 25ms | helix-network, helix-transport |
+| Capture (frame grab → encoder) | 3ms | 3ms | helix-capture |
+| Encode (H.264/HEVC/AV1) | 5ms | 5ms | helix-encoder |
+| Decode (client-side) | 8ms | 8ms | Client WebCodecs/hardware |
+| Display (frame → screen) | 7ms | 7ms | helix-display, OS compositor |
+| **TOTAL BUDGET** | **<=30ms** | **<=50ms** | |
+
+These budgets are **binding SLA targets**, not aspirational goals. Every commit that increases latency on the critical path MUST be accompanied by benchmark evidence showing the budget is still met, or a §13 exception with a remediation plan.
+
+### 19.2 Benchmark reporting discipline
+
+Latency benchmarks MUST report **p50, p99, and p999**. Averages alone are insufficient and constitute a Constitution §1 violation if presented as the primary metric. Benchmark regressions >150% of baseline are CI-blocking.
+
+---
+
+## 20. Technology Stack
+
+The following technology choices are **binding** for the HelixPlay project. Substitution requires a §13 exception.
+
+| Layer | Technology | Version | Purpose |
+|-------|-----------|---------|---------|
+| **Primary Language** | Go | 1.26.2 (root), 1.25+ (submodules) | All services, clients, host agent |
+| **Desktop Client** | Wails v2 | latest | Go backend + JS/TS frontend |
+| **Mobile/TV Client** | Flutter 3.x | latest | Dart UI + Go FFI (c-shared) |
+| **Web Client** | Angular 17+ | latest | TypeScript + Go WASM + WebCodecs |
+| **Streaming** | WebRTC (Pion v4) | v4 | Primary video transport |
+| **Low-Latency Transport** | QUIC (quic-go) | RFC 9221 | Datagram fallback, HTTP/3 |
+| **Custom UDP** | Parsec BUD-style | DTLS 1.2 | Controller input, legacy compatibility |
+| **Message Bus** | NATS JetStream | latest | Async events, service coordination |
+| **Cache** | Redis | 7.x | Sessions, rate limiting, pub/sub |
+| **Primary Database** | CockroachDB | latest | Multi-region, multi-tenant data |
+| **Secrets** | HashiCorp Vault | latest | Credential management, mTLS certs |
+| **Legacy MQ** | RabbitMQ | 3.x | Third-party integration |
+| **Compression** | Brotli | v1.2.1 | Response compression |
+| **Auth** | OAuth2/OIDC (Auth0) | RFC 8628 device grant | User + tenant authentication |
+| **Containers** | Docker / Podman | latest | All runtime environments |
+| **Capture — Windows** | DXGI DDA | DirectX 11/12 | Zero-copy screen capture |
+| **Capture — macOS** | ScreenCaptureKit | macOS 12+ | Zero-copy with IOSurface |
+| **Capture — Linux** | KMS/DRM + PipeWire | latest | DMA-BUF zero-copy |
+| **Encoder — NVIDIA** | NVENC | 8th-gen (Lovelace), 9th-gen (Blackwell) | H.264/HEVC/AV1 hardware encode |
+| **Encoder — Intel** | QSV | Arc Battlemage | H.264/HEVC/AV1 hardware encode |
+| **Encoder — AMD** | VCE/AMF | RDNA3/4 | H.264/HEVC/AV1 hardware encode |
+| **Encoder — Apple** | VideoToolbox | M3–M5 | H.264/HEVC/AV1 hardware encode |
+| **Encoder — Linux** | VAAPI | latest | H.264/HEVC hardware encode |
+| **Audio** | Opus MultiStream | RFC 7845 | Up to 7.1 surround |
+| **HDR** | HDR10/HDR10+/HLG/DV | ITU-R BT.2100 | Metadata preservation |
+| **Quality Assessment** | VMAF | Netflix | Perceptual video quality |
+| **Observability** | Prometheus + OTel | latest | Metrics, traces, logs |
+| **CI Quality Gates** | SonarQube, Snyk, Semgrep, Trivy, gitleaks, govulncheck | latest | Static analysis, CVE scanning |
+
+---
+
+## 21. Implementation Roadmap
+
+The HelixPlay project is delivered in **14 phases** (P00–P13). Every phase has defined exit criteria. No phase may be declared complete until all exit criteria are satisfied with evidence. Skipping, simplifying, or omitting criteria is a Constitution §1 and §8.3 violation.
+
+| Phase | Name | Exit Criteria Summary |
+|-------|------|----------------------|
+| **P00** | Foundation | Root README, Makefile, go.work, Constitution propagated, scripts verified |
+| **P01** | Containers & CI | All services containerised, local CI operational, anti-bluff CI lane active |
+| **P02** | Core Submodules | All submodules at v1.0.0+, dependencies resolved, `go work sync` succeeds |
+| **P03** | Backend Services | CockroachDB + NATS + Redis + Vault deployed, REST gateway operational |
+| **P04** | Streaming Pipeline | helix-pipeline + helix-transport operational, WebRTC/QUIC functional |
+| **P05** | Triple-Stack Clients | Wails desktop, Flutter mobile/TV, Angular web all connect and display video |
+| **P06** | Host Agent Integration | Sunshine++ fully operational, game enumeration, discovery beacon, lifecycle management |
+| **P07** | Latency Optimization | PREEMPT_RT kernel, SCHED_FIFO, io_uring, lock-free structures, GPU direct, SHM IPC |
+| **P08** | Audio Surround | Opus MultiStream 7.1, AC3/EAC3 passthrough, Dolby Atmos, A/V sync <5ms |
+| **P09** | Recording & Replay | Dual-path encoding, MKV/fMP4, instant replay, background sync, DASH client |
+| **P10** | Monetization & Auth | OAuth2/OIDC, multi-tenant billing, resource quotas, webhooks |
+| **P11** | Hardening & Security | Full mTLS, RBAC, audit logging, R-18 SafeExec enforced, penetration tested |
+| **P12** | Beta Launch | Operator-facing canary, 30-day replay, white-label partners onboarded |
+| **P13** | GA Release | v1.0.0 release-train tag-publish across all 29 submodules, four mirrors synced |
+
+Phase details, task breakdowns, and acceptance criteria live in `05_Response/09_Implementation_Phases/`. Every task maps to a `[Pxx.Tyy.Szz]` ticket on both GitHub Projects and GitLab Issues per §8.
+
+---
+
 ## Anti-Bluff Verification
 
 ### Source Evidence Reviewed
@@ -856,6 +1121,9 @@ Constitution. There is no opt-out. There are no exceptions to §1
 - `/run/media/milosvasic/DATA4TB/Projects/HelixPlay/docs/research/chapters/MVP/01_base/02_response/Research/research/cloudgaming_insight.md` — 156 lines, reviewed 2026-04-28 (Insight #5 anti-cheat clean host informs §11.3).
 - `/run/media/milosvasic/DATA4TB/Projects/HelixPlay/docs/research/chapters/MVP/02_latency/02_Response/Agent_results/research/latency_insight.md` — 100 lines, reviewed 2026-04-28 (Insights #2, #4 inform §5, §10.3).
 - `/run/media/milosvasic/DATA4TB/Projects/HelixPlay/docs/research/chapters/MVP/03_video_technology/02_Response/Agent_Results/research/video-tech_insight.md` — 243 lines, reviewed 2026-04-28 (Insight #4 informs §11.4).
+- `docs/plans/mvp/Full_Implementation_Plan/helixplay_implementation_plan.md` — 10,482 lines, reviewed 2026-05-02 (R-01..R-18 mapping informs §17; Eight Pillars inform §18; latency budget informs §19; technology stack informs §20; phases P00-P13 inform §21).
+- `docs/plans/mvp/Full_Implementation_Plan/section_testing_strategy.md` — 3,857 lines, reviewed 2026-05-02 (forbidden patterns tables inform §1.1.1; observable behaviour ratio informs §1.2; enforcement mechanisms inform §1.3.1; mutation score informs §6.4).
+- `docs/plans/mvp/Full_Implementation_Plan/section_advanced_phases.md` — 3,198 lines, reviewed 2026-05-02 (phases P07-P13 detail informs §21).
 
 ### Web Sources Consulted
 - None for Constitution v1. Web research is reserved for the technical
@@ -880,27 +1148,9 @@ Constitution. There is no opt-out. There are no exceptions to §1
   this single document.
 
 ### Sign-off
-Executed by: Claude (orchestrator session 2)
+Executed by: Claude (orchestrator session 1)
 Reviewed by: pending operator review
-Date: 2026-04-30
+Date: 2026-04-28
+Amended to v2.2.0: 2026-05-02
 
----
-
-<!-- SYNC IMPACT REPORT — auto-generated 2026-04-30 -->
-<!-- Version change: v1 → v2.0.0 (MAJOR: added user mandates §0, updated preamble) -->
-<!-- Modified principles: None renamed -->
-<!-- Added sections: User Mandate (§0 preamble) -->
-<!-- Removed sections: None -->
-<!-- Templates requiring updates: -->
-<!--   ✅ .specify/templates/constitution-template.md — updated inline -->
-<!--   ⚠  .specify/templates/plan-template.md — pending: add Constitution Check for v2 -->
-<!--   ⚠  .specify/templates/spec-template.md — pending: align scope with v2 -->
-<!--   ⚠  .specify/templates/tasks-template.md — pending: reflect new principles -->
-<!--   ✅ .specify/templates/commands/speckit.constitution.md — reviewed, OK -->
-<!--   ✅ AGENTS.md — rewritten 2026-04-30, v2 clauses baked in -->
-<!--   ⚠  CLAUDE.md — pending: propagate v2 preamble mandates -->
-<!-- Follow-up TODOs: -->
-<!--   TODO(CONSTITUTION_VERSION): Update submodules' CONSTITUTION.md when added -->
-<!--   TODO(PROPAGATION): Propagate v2 to CLAUDE.md and all future submodules -->
-
-End of Constitution v2.0.0 — 2026-04-30.
+End of Constitution v2.2.0 — 2026-05-02.
