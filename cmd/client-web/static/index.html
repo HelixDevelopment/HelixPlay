@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HelixPlay Web Client</title>
+  <style>
+    body { margin: 0; background: #111; color: #fff; font-family: sans-serif; }
+    #app { display: flex; flex-direction: column; height: 100vh; }
+    header { padding: 1rem; background: #222; }
+    main { flex: 1; display: flex; }
+    #streaming { flex: 2; }
+    #catalog { flex: 1; background: #1a1a1a; overflow-y: auto; }
+    canvas { width: 100%; height: 100%; background: #000; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header>HelixPlay Web Client</header>
+    <main>
+      <section id="streaming">
+        <canvas id="streamCanvas"></canvas>
+      </section>
+      <aside id="catalog">
+        <h2>Catalog</h2>
+        <ul id="gameList"></ul>
+      </aside>
+    </main>
+  </div>
+  <script type="module" src="/app/main.js"></script>
+</body>
+</html>

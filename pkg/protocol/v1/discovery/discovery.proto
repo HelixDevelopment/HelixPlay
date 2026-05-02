@@ -1,0 +1,135 @@
+syntax = "proto3";
+package discovery.v1;
+
+option go_package = "github.com/HelixDevelopment/HelixPlay/pkg/protocol/v1;discoveryv1";
+
+// RendezvousService manages host discovery across LAN and WAN
+service RendezvousService {
+  rpc RegisterHost(RendezvousHost) returns (RegisterHostResponse);
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+  rpc DeregisterHost(DeregisterHostRequest) returns (Empty);
+  rpc ListHosts(ListHostsRequest) returns (ListHostsResponse);
+  rpc GetHost(GetHostRequest) returns (RendezvousHost);
+  rpc WatchHosts(WatchHostsRequest) returns (stream HostEvent);
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+message RendezvousHost {
+  string host_id = 1;
+  string tenant_id = 2;
+  string public_endpoint = 3;
+  string local_endpoint = 4;
+  string os = 5;
+  string version = 6;
+  string status = 7;
+  CapabilitiesSnapshot capabilities = 8;
+  string cert_fingerprint = 9;
+  string region = 10;
+  int32 active_session_count = 11;
+  string last_seen_at = 12;
+  string registered_at = 13;
+}
+
+message CapabilitiesSnapshot {
+  repeated GPUCapability gpus = 1;
+  repeated string codecs = 2;
+  repeated string transports = 3;
+  Resolution max_resolution = 4;
+  int32 max_refresh_rate = 5;
+  repeated string hdr_formats = 6;
+}
+
+message GPUCapability {
+  int32 index = 1;
+  string vendor = 2;
+  string model = 3;
+  string encoder = 4;
+  repeated string codecs = 5;
+  int32 vram_gb = 6;
+  int32 thermal_c = 7;
+}
+
+message Resolution {
+  int32 width = 1;
+  int32 height = 2;
+}
+
+message RegisterHostResponse {
+  string lease_id = 1;
+  int32 heartbeat_interval_sec = 2;
+  string expires_at = 3;
+}
+
+message HeartbeatRequest {
+  string host_id = 1;
+  string lease_id = 2;
+  string status = 3;
+  int32 active_session_count = 4;
+  int64 timestamp_ns = 5;
+}
+
+message HeartbeatResponse {
+  bool lease_extended = 1;
+  string expires_at = 2;
+  string action = 3;
+}
+
+message DeregisterHostRequest {
+  string host_id = 1;
+  string lease_id = 2;
+  string reason = 3;
+}
+
+message Empty {}
+
+message ListHostsRequest {
+  string tenant_id = 1;
+  string region = 2;
+  string status = 3;
+  CapabilityFilter capability_filter = 4;
+  int32 page_size = 5;
+  string page_token = 6;
+}
+
+message CapabilityFilter {
+  repeated string gpu_models = 1;
+  repeated string codecs = 2;
+  repeated string transports = 3;
+}
+
+message ListHostsResponse {
+  repeated RendezvousHost hosts = 1;
+  string next_page_token = 2;
+  int64 total_size = 3;
+}
+
+message GetHostRequest {
+  string host_id = 1;
+}
+
+message WatchHostsRequest {
+  string tenant_id = 1;
+  string region = 2;
+  CapabilityFilter capability_filter = 3;
+}
+
+message HostEvent {
+  string event_type = 1;
+  RendezvousHost host = 2;
+  int64 timestamp_ns = 3;
+}
+
+message HealthRequest {
+  string service = 1;
+}
+
+message HealthResponse {
+  string status = 1;
+  repeated HealthCheck checks = 2;
+}
+
+message HealthCheck {
+  string name = 1;
+  string status = 2;
+  string detail = 3;
+}

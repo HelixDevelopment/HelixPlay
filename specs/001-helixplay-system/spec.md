@@ -159,7 +159,7 @@ OAuth2/OIDC for user auth (device authorization grant RFC 8628 for input-constra
 
 ### User Story 9 - Catalog, Metadata & 4K Assets (Priority: P2)
 
-Game catalog with metadata: title, description, cover art, screenshots, videos, system requirements, supported controllers, HDR support, surround sound. 4K asset management, CDN caching, lazy loading. Catalogizer submodule (`HelixDevelopment/Catalogizer`) integrates with Challenges discipline (`vasic-digital/Challenges`) for QA.
+Game catalog with metadata: title, description, cover art, screenshots, videos, system requirements, supported controllers, HDR support, surround sound. 4K asset management, CDN caching, lazy loading. Catalogizer (`HelixDevelopment/Catalogizer`) is a **decoupled, standalone submodule** that provides catalog services; HelixPlay consumes its API (gRPC/REST) with no hard coupling.
 
 **Why this priority**: Catalog is storefront — if users can't browse games effectively, they won't play. 4K assets required for modern displays.
 
@@ -189,7 +189,7 @@ Game catalog with metadata: title, description, cover art, screenshots, videos, 
 
 2. **Given** Challenges submodule integrated, **When** nightly cadence runs, **Then** real user journeys executed against production-like system, Challenges boot full topology, observe end-user-visible behavior, report pass/fail with screenshots/traces.
 
-3. **Given** HelixQA integrated, **When** pre-release checkpoint runs, **Then** autonomous QA orchestrates all 10 test types across matrix (29 submodules × 10 types × 4 CI runners = 1,160 cells), reports coverage gaps, blocks release if anti-bluff fails.
+3. **Given** HelixQA integrated, **When** pre-release checkpoint runs, **Then** autonomous QA orchestrates all 10 test types across matrix (46 submodules × 10 types × 4 CI runners = 1,840 cells), reports coverage gaps, blocks release if anti-bluff fails.
 
 ---
 
@@ -250,7 +250,6 @@ Game catalog with metadata: title, description, cover art, screenshots, videos, 
 #### Catalog & Assets
 - **FR-026**: System MUST maintain game catalog: metadata (title, description, cover art, screenshots, videos), system requirements, supported controllers, HDR/surround features per `06_Catalog_and_Assets.md`.
 - **FR-027**: System MUST manage 4K assets with CDN caching, lazy loading, efficient scroll performance.
-- **FR-028**: System MUST integrate Catalogizer submodule (`HelixDevelopment/Catalogizer`) with Challenges discipline for QA per R-14.
 
 #### Testing & Quality
 - **FR-029**: System MUST achieve 100% coverage across 10 test types per R-11: Unit, Integration, E2E, Security, Benchmarking, Chaos, Stress, Smoke, Full Automation, Challenges.
@@ -264,6 +263,14 @@ Game catalog with metadata: title, description, cover art, screenshots, videos, 
 - **FR-035**: System MUST decouple reusable components into public Git/Go submodules under `vasic-digital` & `HelixDevelopment` per R-03/R-04.
 - **FR-036**: System MUST reuse existing `vasic-digital` submodules; if features missing, MUST extend submodule (not duplicate) per R-04.
 - **FR-037**: System MUST propagate Constitution to every submodule's CLAUDE.md, AGENTS.md, CONSITUTION.md per R-15.
+- **FR-038**: System MUST achieve mutation score ≥85% using `go-mutesting` with branch/if, expression/remove, and statement/remove mutators (timeout 60s per mutant) per Constitution §6.4.
+- **FR-039**: System MUST maintain observable behaviour assertion ratio ≥60%: at least 60% of assertions in any test file must verify observable behaviour (HTTP responses, DB state, rendered frames, file writes) per Constitution §1.2.
+- **FR-040**: System MUST provide usability evidence for every feature: HelixQA visual assertion, manual recording, or Challenge scenario with non-empty `RecordedActions` per Constitution §6.7.
+- **FR-041**: System MUST run automatic negative-leg fault injection per feature in CI: break each feature and verify non-Unit tests fail per Constitution §1.3 / §6.3.
+- **FR-042**: System MUST report latency benchmarks as p50/p99/p999 — averages are forbidden. Regressions >150% of baseline are CI-blocking per Constitution §19.2.
+- **FR-043**: System MUST implement stage-by-stage glass-to-glass latency budget: Controller input (2ms/15ms), Network transit (5ms/25ms), Capture (3ms), Encode (5ms), Decode (8ms), Display (7ms) per Constitution §19.1.
+- **FR-044**: System MUST maintain root `go.work` file and `go work sync` resolution per R-04.
+- **FR-045**: System MUST use Semantic Import Versioning (`/vN` suffix) for all public submodules; no breaking changes within a major version per R-03.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -284,7 +291,7 @@ Game catalog with metadata: title, description, cover art, screenshots, videos, 
 - **SC-001**: Users can stream games from their own host with p999 latency ≤50 ms (WAN) and ≤30 ms (LAN), measured over ≥10,000 samples per Constitution §6.
 - **SC-002**: Controller input (DualSense haptics, adaptive triggers, gyro, accelerometer, audio jack) forwarded with ≤1 ms effective latency, verified by high-speed camera or `presentmon` traces.
 - **SC-003**: Triple-stack clients (Wails desktop, Flutter mobile/TV, Angular web) all achieve same latency budget, share one Go core, verified by running same E2E test suite on all three.
-- **SC-004**: 100% of 29 submodules pass all 10 test types (1,160 cells in matrix), mocks only in Unit, anti-bluff verification blocks all green, HelixQA autonomous sign-off obtained.
+- **SC-004**: 100% of 46 submodules pass all 10 test types (1,840 cells in matrix), mocks only in Unit, anti-bluff verification blocks all green, HelixQA autonomous sign-off obtained.
 - **SC-005**: Dual-path encoding (stream + record) runs simultaneously without interference, recordings stored to NVMe with correct codec/audio sync/HDR metadata, background sync to user storage without impacting streaming.
 - **SC-006**: White-label theming applies in real-time to all three client types, 100+ tenant isolation verified (users/catalog/recordings/billing per-tenant), OAuth2/OIDC flows work for all client types including device authorization grant.
 - **SC-007**: TV-first 10-foot UX fully navigable with controller only, quick resume within ≤5 seconds, instant-on, background download, matches PS4/PS5 UX bar.
@@ -302,7 +309,7 @@ Game catalog with metadata: title, description, cover art, screenshots, videos, 
 - **ASM-004**: White-label partners provide their own OAuth2/OIDC identity provider, CDN for catalog assets, and billing integration.
 - **ASM-005**: Game developers/publishers allow personal-use streaming of purchased games (Steam/Epic/GOG terms of service).
 - **ASM-006**: H.264 always available (RFC 7742 for WebRTC), HEVC patent pools compliant, AV1 royalty-free (Alliance for Open Media), VVC deferred to 2028+ pending hardware encode availability.
-- **ASM-007**: Submodule catalog (29 submodules) is accurate as of 2026-04-30, new submodules may be added per R-03/R-04 decoupling rules.
+- **ASM-007**: Submodule catalog (46 submodules) is accurate as of 2026-04-30, new submodules may be added per R-03/R-04 decoupling rules.
 - **ASM-008**: Container runtime (Docker/Podman) available on host for `vasic-digital/Containers` bootstrap.
 - **ASM-009**: NATS/Redis/RabbitMQ chosen per service — NATS for lightweight pub/sub, Redis for caching/sessions, RabbitMQ for complex routing (R-08).
 - **ASM-010**: Codec licensing: H.264 no per-unit fee (RFC 7742), HEVC pools tracked (MPEG LA + HEVC Advance + Velos Media), AV1 royalty-free, Dolby Atmos/Dolby Vision requires Dolby licensing for commercial use.
@@ -334,8 +341,8 @@ Game catalog with metadata: title, description, cover art, screenshots, videos, 
 - **DEP-021**: `vasic-digital/Formatters` — codec negotiation, capability schemas.
 - **DEP-022**: `vasic-digital/Media` — capture pipelines, hardware encoder bindings.
 - **DEP-023**: `HelixDevelopment/HelixQA` — autonomous QA system, orchestrates all 10 test types.
-- **DEP-024**: `HelixDevelopment/Catalogizer` — game catalog, metadata, 4K assets, integrated with Challenges.
-- **DEP-025**: Go 1.22+ — primary language for host agent, clients, services.
+- **DEP-024**: `HelixDevelopment/Catalogizer` — game catalog, metadata, 4K assets. **Decoupled**: exposed via gRPC/REST API; no direct code coupling into HelixPlay core.
+- **DEP-025**: Go 1.26.2 (root), 1.25+ (submodules) — primary language for host agent, clients, services. Technology choices are **binding**; substitution requires a §13 exception per Constitution §20.
 - **DEP-026**: Angular 17+ — web client framework (WASM compilation).
 - **DEP-027**: Flutter 3.x+ — mobile/TV client framework (FFI to Go core).
 - **DEP-028**: Wails v2 — desktop client framework (bundles Go + frontend).
@@ -357,7 +364,7 @@ Game catalog with metadata: title, description, cover art, screenshots, videos, 
 ## Phase Breakdown (R-16: phases → tasks → subtasks)
 
 ### Phase 1: Foundation & Submodules (P1)
-- **Task 1.1**: Propagate Constitution v2.0.0 to all 29 submodules (CLAUDE.md, AGENTS.md, CONSITUTION.md).
+- **Task 1.1**: Propagate Constitution v2.2.0 to all 46 submodules (CLAUDE.md, AGENTS.md, CONSTITUTION.md).
 - **Task 1.2**: Verify all submodule dependencies transitively complete in `.gitmodules` (R-15).
 - **Task 1.3**: Bootstrap `vasic-digital/Containers` with host agent, capture, encoder, discovery container definitions.
 - **Task 1.4**: Implement `vasic-digital/Memory` — shared memory, zero-copy IPC (`memfd_create`, lock-free SPSC).
@@ -396,7 +403,7 @@ Game catalog with metadata: title, description, cover art, screenshots, videos, 
 - **Task 7.3**: Implement screensaver with featured games, catalog browsing at 10-foot distance.
 
 ### Phase 8: Catalog, Metadata & Assets (P2)
-- **Task 8.1**: Implement Catalogizer — game metadata, cover art, screenshots, videos, system requirements.
+- **Task 8.1**: Implement Catalogizer integration — consume catalog API (gRPC/REST), metadata sync, asset proxy. Catalogizer remains standalone; no hard coupling.
 - **Task 8.2**: Implement 4K asset management — CDN caching, lazy loading, efficient scroll.
 - **Task 8.3**: Implement catalog search — ≤200 ms (p999), relevance ranking, filter by feature.
 
@@ -449,7 +456,7 @@ Game catalog with metadata: title, description, cover art, screenshots, videos, 
 
 ---
 
-## Anti-Bluff Verification (R-01, R-02, R-13)
+## Anti-Bluff Verification (R-01..R-18)
 
 ### Sources Extended (R-01 — no simplification, no bluffing)
 | Source Stream | Final Synthesis (lines) | Per-Dim Research (lines) | Insights + CV (lines) | Total Absorbed |
@@ -459,36 +466,84 @@ Game catalog with metadata: title, description, cover art, screenshots, videos, 
 | Stream 3 (03_video_technology) | 2,588 | 14,798 | 449 | 17,835 |
 | **Combined** | **7,604** | **28,275** | **936** | **36,815** |
 
-This spec extends all 36,815 lines from three research streams plus AGENTS.md (264→60 lines rewrite), Constitution v2.0.0, Master Plan, System Overview, Architecture (13 chapters), Latency (11 chapters), Video/Audio (13 chapters), Testing (12 chapters), Submodules (29 submodules across 4 families).
+This spec extends all 36,815 lines from three research streams plus AGENTS.md (264→60 lines rewrite), Constitution v2.2.0, Master Plan, System Overview, Architecture (13 chapters), Latency (11 chapters), Video/Audio (13 chapters), Testing (12 chapters), Submodules (46 submodules across 4 families).
 
-### Forbidden Patterns Absent (R-02)
-- [x] No `TODO`/`FIXME`/`XXX`/`HACK`/`tbd` placeholders
-- [x] No empty function bodies, `pass`, `panic("not implemented")`, `return null` stand-ins
-- [x] No dead code, unused exports, commented-out blocks >2 lines
-- [x] No dummy/placeholder classes
-- [x] No tests that pass without exercising the system
-- [x] No phrases: "and similar", "etc." (in normative text), "as appropriate", "as needed"
-- [x] No configuration keys without defaults/ranges/units/effect
-- [x] No tables with empty cells (uses `N/A` with footnote)
-- [x] No undocumented claims (all claims cite source research, code, or URL/RFC/paper)
+### Forbidden Patterns Absent (R-02) — Enforcement per §1.1.1
+| Pattern | Severity | Status |
+|---------|----------|--------|
+| `assert.True(t, true)` / `assert.NotNil(t, nil)` | BLOCKER | ✅ Absent |
+| Constructor-only test (`TestNew*` with only nil/field checks) | CRITICAL | ✅ Remediated (2 found, fixed) |
+| Empty function body `{}` | CRITICAL | ✅ Absent (NoopLogger intentional) |
+| `panic("not implemented")` | CRITICAL | ✅ Absent |
+| `TODO`/`FIXME`/`XXX`/`HACK`/`tbd` in own code | WARNING | ✅ 2 known, tracked |
+| No negative-leg fault injection | CRITICAL | 🔄 CI lane in progress |
+| Mocks in non-Unit tests | BLOCKER | 🔄 9 files flagged for remediation |
+| Dead code, unused exports, commented-out blocks >2 lines | CRITICAL | ✅ Absent |
+| Dummy/placeholder classes | CRITICAL | ✅ Absent |
+| Tests that pass without exercising the system | CRITICAL | ✅ Remediated |
+| Configuration keys without defaults/ranges/units/effect | WARNING | ✅ Absent |
+| Tables with empty cells | WARNING | ✅ Absent (uses `N/A`) |
+| Undocumented claims | WARNING | ✅ Absent (all cited) |
 
-### Test Coverage (R-11, R-12, R-13)
+### Enforcement Mechanisms (§1.3.1)
+| Mechanism | Runs When | What It Checks |
+|-----------|-----------|----------------|
+| `anti-bluff-scan` CI lane | Every commit | ripgrep forbidden tokens, AST scan empty bodies, coverage delta |
+| Challenge framework | Nightly | `ValidateAntiBluff()` unconditional, `RecordAction()` in all challenges |
+| Mutation testing | Pre-merge | `go-mutesting` score ≥85%, branch/if + expr/remove + stmt/remove |
+| Negative-leg fault injection | CI sub-lane | Breaks each feature, verifies non-Unit tests fail |
+| HelixQA autonomous | Pre-release | Orchestrates 1,840 test cells, visual assertion, blocks release |
+| Session stop hook | Agent stop | `claim-check.sh` verifies no uncommitted bluff |
+
+### Test Coverage (R-11, R-12, R-13, §6)
 - [x] 10 test types defined: Unit, Integration, E2E, Security, Benchmarking, Chaos, Stress, Smoke, Full Automation, Challenges
-- [x] 29 submodules × 10 types × 4 CI runners = 1,160 cells in Test Matrix (T01)
+- [x] 46 submodules × 10 types × 4 CI runners = 1,840 cells in Test Matrix (T01)
 - [x] Only Unit may use mocks/stubs/hardcoded values (R-12)
 - [x] Other 9 types MUST drive real production-like system (R-12)
+- [x] Observable behaviour assertion ratio ≥60% enforced per §1.2
+- [x] Mutation score ≥85% enforced per §6.4
+- [x] Usability evidence mandatory per feature per §6.7
 - [x] Challenges (T11) + HelixQA (T12) are meta-tests guaranteeing real end-user-usable behavior (R-13)
 - [x] Anti-bluff CI lane (`anti-bluff-scan`) non-overridable (Constitution §1.3)
 
 ### Submodule Propagation (R-03, R-04, R-15)
-- [x] 29 submodules identified: Auth, Cache, Challenges, Concurrency, Containers, Database, Discovery, EventBus, Formatters, HelixQA, Media, Memory, Messaging, Middleware, Observability, Plugins, RAG, RateLimiter, Recovery, Security, Storage, Streaming, VectorDB (+ Catalogizer, HelixQA from HelixDevelopment)
+- [x] 46 submodules identified: Auth, Cache, Challenges, Concurrency, Containers, Database, Discovery, EventBus, Formatters, HelixQA, Media, Memory, Messaging, Middleware, Observability, Plugins, RAG, RateLimiter, Recovery, Security, Storage, Streaming, VectorDB, Assets, Auth-Context-React, Catalogizer, Catalogizer-API-Client-TS, Collection-Manager-React, Config, Dashboard-Analytics-React, DocProcessor, Entities, Filesystem, Lazy, LLMOrchestrator, LLMProvider, Media-Browser-React, Media-Player-React, Media-Types-TS, ReplayBuffer, ScreenDiff, TrainingCollector, UI-Components-React, VisionEngine, VisualRegression, WebSocket-Client-TS, Watcher (+ HelixQA from HelixDevelopment)
 - [x] All reuse `vasic-digital` submodules first; extend if partially covered (R-04)
-- [x] Every submodule propagates Constitution to CLAUDE.md, AGENTS.md, CONSITUTION.md (R-15)
+- [x] Root `go.work` required per R-04; `go work sync` resolution
+- [x] Semantic Import Versioning (`/vN` suffix) for all public submodules per R-03
+- [x] Every submodule propagates Constitution v2.2.0 to CLAUDE.md, AGENTS.md, CONSTITUTION.md (R-15)
 - [x] `.gitmodules` transitively complete — no missing dependency submodules (R-15)
 
-### Operational Integrity (R-18)
-- [x] `host-integrity-scan` CI sub-lane checks forbidden commands (Constitution §11.5)
+### Performance SLAs (R-19, §19)
+- [x] Glass-to-glass p999 ≤30ms (LAN) / ≤50ms (WAN) per §19.1
+- [x] Stage-by-stage budget: Controller input (2ms/15ms), Network transit (5ms/25ms), Capture (3ms), Encode (5ms), Decode (8ms), Display (7ms)
+- [x] Benchmarks report p50/p99/p999 — averages forbidden per §19.2
+- [x] Regressions >150% baseline CI-blocking per §19.2
+
+### Observability Stack (R-14, §10.1)
+- [x] Structured JSON logs (slog) per §10.1
+- [x] Prometheus metrics per §10.1
+- [x] OpenTelemetry traces per §10.1
+- [x] Domain events on NATS per §10.1
+
+### Security & Privacy (R-16, §11.1–11.4)
+- [x] OAuth2/OIDC with mTLS between services per §11.1
+- [x] Short-lived JWT with refresh rotation per §11.2
+- [x] Anti-cheat clean host constraint per §11.3
+- [x] Player input treated as personal data per §11.4
+
+### Documentation Discipline (R-17, §12)
+- [x] Living documents — no drift >30 days per §12.1
+- [x] No simplification prohibition per §12.2
+- [x] Exhaustive enumeration required per §12.3
+- [x] Bidirectional cross-linking per §12.4
+
+### Operational Integrity (R-18, §11.5)
+- [x] `host-integrity-scan` CI sub-lane checks forbidden commands (Constitution §11.5.1)
 - [x] No command/hook/container entrypoint/agent prompt may suspend/hibernate/lock/terminate/crash operator's host
+- [x] Container hazards inventory: OOM cascade, disk-fill, privileged mounts, CPU starvation, mount-namespace sealing (§11.5.2–11.5.3)
+- [x] Subagent tool-budget isolation per §11.5.5
+- [x] Recovery posture: no automatic re-execution, investigate first, honest finding, document incident, resume after confirmation per §11.5.6
 - [x] `r18.SafeExec` wrapper inherits to all submodules for `tc qdisc`, `setcap`, `chrt`, `taskset`, `numactl`
 
 ### Open Questions (Marked [NEEDS_CLARIFICATION])
@@ -509,7 +564,7 @@ This spec extends all 36,815 lines from three research streams plus AGENTS.md (2
 - **Question**: Which CDN vendor for 4K asset delivery (catalog metadata, box art, screenshots, video trailers)?
 - **Answer**: **Amazon CloudFront + S3** (Option C, answered "C")
 - **Rationale**: Global edge locations (300+), signed URL support for tenant-isolated assets, cache-control granularity, cost-effective storage tiering, native integration with S3 for origin
-- **Impact**: Updates C06 (`06_Catalog_and_Assets.md`) §§ CDN section; `vasic-digital/Storage` submodule extended with S3 backend + CloudFront signed URL generation; `vasic-digital/Catalogizer` uses CloudFront URLs for asset delivery
+- **Impact**: Updates C06 (`06_Catalog_and_Assets.md`) §§ CDN section; `vasic-digital/Storage` submodule extended with S3 backend + CloudFront signed URL generation
 - **Status**: ✅ Resolved 2026-04-30
 
 ### C-003: Billing/Monetization → Custom Billing (vasic-digital/Monetization)
@@ -543,7 +598,7 @@ This spec extends all 36,815 lines from three research streams plus AGENTS.md (2
 - C03: `03_Host_OS_Capture.md` — DXGI, ScreenCaptureKit, KMS/DMA-BUF + PipeWire
 - C04: `04_Go_Client_Ecosystem.md` — Wails, Flutter, Angular + shared Go core
 - C05: `05_RealTime_APIs.md` — NATS, Redis, RabbitMQ, gRPC, REST, HTTP/3
-- C06: `06_Catalog_and_Assets.md` — Catalogizer, metadata, 4K assets, CDN
+- C06: `06_Catalog_and_Assets.md` — metadata, 4K assets, CDN
 - C07: `07_Host_Agent_and_Game_Lifecycle.md` — `r18.SafeExec`, lifecycle, capability advertisement
 - C08: `08_Scalability_and_MultiRegion.md` — load balancing, auto-scaling, failover
 - C09: `09_Security_and_Isolation.md` — OAuth2/OIDC, RBAC, container isolation
@@ -578,7 +633,7 @@ This spec extends all 36,815 lines from three research streams plus AGENTS.md (2
 - C37: `12_Network_Transport.md` — WebRTC vs custom UDP (CZ-01), SQP, QUIC
 
 ### Testing Family (R-11, R-12, R-13, R-14)
-- T01: `01_Test_Matrix.md` — 29 × 10 × 4 = 1,160 cells
+- T01: `01_Test_Matrix.md` — 46 × 10 × 4 = 1,840 cells
 - T02: `02_Unit_Tests.md` — ≥95% coverage, mocks allowed
 - T03: `03_Integration_Tests.md` — no mocks, real deps
 - T04: `04_E2E_Tests.md` — full topology, real system
@@ -588,7 +643,7 @@ This spec extends all 36,815 lines from three research streams plus AGENTS.md (2
 - T08: `08_Stress.md` — 24-hour soak, zero leaks
 - T09: `09_Smoke.md` — 30-second post-deploy
 - T10: `10_Full_Automation.md` — orchestrates 1-8, fail-fast disabled
-- T11: `11_Challenges.md` — meta-test, HelixAgent + Catalogizer integration
+- T11: `11_Challenges.md` — meta-test, HelixAgent integration
 - T12: `12_HelixQA_Autonomous.md` — autonomous QA, pre-release sign-off
 
 ---

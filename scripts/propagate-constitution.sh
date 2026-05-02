@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # propagate-constitution.sh
-# Propagate Constitution v2.1.0 preamble and anti-bluff enforcement to all submodules
+# Propagate Constitution v2.2.0 preamble and anti-bluff enforcement to all submodules
 
 set -euo pipefail
 
@@ -12,7 +12,7 @@ CONSTITUTION_URL="https://github.com/HelixDevelopment/HelixPlay/blob/main/docs/r
 # Read submodules dynamically from .gitmodules
 SUBMODULES=($(git config --file .gitmodules --get-regexp path | awk '{print $2}'))
 
-echo "Propagating Constitution v2.1.0 to ${#SUBMODULES[@]} submodules..."
+echo "Propagating Constitution v2.2.0 to ${#SUBMODULES[@]} submodules..."
 echo "Constitution URL: $CONSTITUTION_URL"
 echo ""
 
@@ -39,10 +39,10 @@ for submodule in "${SUBMODULES[@]}"; do
 
 $PRIME_DIRECTIVE
 
-> **Constitution v2.1.0**: [Read the Constitution]($CONSTITUTION_URL)
-> All rules in Constitution §1-§18 are MANDATORY. No exception.
+> **Constitution v2.2.0**: [Read the Constitution]($CONSTITUTION_URL)
+> All rules in Constitution §1-§21 are MANDATORY. No exception.
 >
-> **Amendments (2026-05-01):**
+> **Amendments (2026-05-02):**
 > - Anti-bluff: forbidden patterns include \`assert.True(t, true)\`,
 >   \`assert.NotNil(t, nil)\`, constructor-only tests, mock-only
 >   integration/E2E tests, and permanently skipped tests without
@@ -52,6 +52,14 @@ $PRIME_DIRECTIVE
 > - Automatic negative-leg fault injection per §1.3 / §6.3 / §11.5.7 —
 >   CI breaks each feature and verifies non-Unit tests fail.
 > - \`ValidateAntiBluff\` unconditional; all challenges call \`RecordAction()\`.
+> - Observable behaviour assertion ratio: at least 60% of assertions must verify
+>   observable behaviour per §1.2.
+> - Mutation score >= 85% enforced by \`mutation_ratchet_challenge.sh\` per §6.4.
+> - The 18 Contract Clauses (R-01..R-18) codified in §17.
+> - Eight Architectural Pillars codified in §18 — binding architectural decisions.
+> - Performance SLAs codified in §19 — <=30ms LAN, <=50ms WAN at p999.
+> - Technology Stack codified in §20 — mandatory technology choices.
+> - Implementation Roadmap codified in §21 — 14 phases (P00–P13).
 
 ## Project Context
 This submodule is part of the HelixPlay system.
@@ -66,10 +74,10 @@ EOF
 
 $PRIME_DIRECTIVE
 
-> **Constitution v2.1.0**: [Read the Constitution]($CONSTITUTION_URL)
-> All rules in Constitution §1-§18 are MANDATORY. No exception.
+> **Constitution v2.2.0**: [Read the Constitution]($CONSTITUTION_URL)
+> All rules in Constitution §1-§21 are MANDATORY. No exception.
 >
-> **Amendments (2026-05-01):**
+> **Amendments (2026-05-02):**
 > - Anti-bluff enforcement strengthened: no vacuous assertions, no
 >   constructor-only tests, no mock-only integration/E2E tests, no
 >   untriaged skips.
@@ -77,6 +85,14 @@ $PRIME_DIRECTIVE
 > - Automatic negative-leg fault injection per §1.3 / §6.3 / §11.5.7.
 > - \`ValidateAntiBluff\` unconditional; all challenges call \`RecordAction()\`.
 > - Container verifier \`execCommand()\` executes real commands.
+> - Observable behaviour assertion ratio: at least 60% of assertions must verify
+>   observable behaviour per §1.2.
+> - Mutation score >= 85% enforced by \`mutation_ratchet_challenge.sh\` per §6.4.
+> - The 18 Contract Clauses (R-01..R-18) codified in §17.
+> - Eight Architectural Pillars codified in §18 — binding architectural decisions.
+> - Performance SLAs codified in §19 — <=30ms LAN, <=50ms WAN at p999.
+> - Technology Stack codified in §20 — mandatory technology choices.
+> - Implementation Roadmap codified in §21 — 14 phases (P00–P13).
 
 ## Repo state
 This is a \`vasic-digital\` / \`HelixDevelopment\` submodule for HelixPlay.
@@ -98,13 +114,13 @@ EOF
 
 > **Source of truth:** [$CONSTITUTION_URL]($CONSTITUTION_URL)
 >
-> This submodule adopts the HelixPlay Constitution v2.1.0 in full.
-> All clauses §1-§18 are binding. No local weakening permitted.
+> This submodule adopts the HelixPlay Constitution v2.2.0 in full.
+> All clauses §1-§21 are binding. No local weakening permitted.
 EOF
 
     echo "  Updated CLAUDE.md, AGENTS.md, CONSTITUTION.md"
 done
 
 echo ""
-echo "Constitution v2.1.0 propagation complete."
+echo "Constitution v2.2.0 propagation complete."
 echo "Next: git add + commit in each submodule, then push."

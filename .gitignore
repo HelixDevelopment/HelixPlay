@@ -1,2 +1,71 @@
-.claude/*.lock
+# HelixPlay Root .gitignore
+# Constitution v2.2.0 — container-native, anti-bluff
 
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+
+# Test artifacts
+*.test
+*.out
+coverage.out
+coverage.html
+*.prof
+*.cov
+
+# Go
+vendor/
+go.work.sum
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.secret
+*.key
+*.crt
+*.pem
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (for client frontends)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs
+*.log
+logs/
+
+# Docker
+docker-compose.override.yml
+
+# Helm
+deploy/helm/*/charts/
+
+# CI artifacts
+qa-results/
+evidence/
+results/
+
+# Build cache
+.cache/
+tmp/
+temp/

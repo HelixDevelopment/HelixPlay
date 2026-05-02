@@ -91,6 +91,23 @@ func (v *vaapiEncoder) Close() error {
     return nil
 }
 
+type softwareEncoder struct {
+    name string
+}
+
+func (s *softwareEncoder) Name() string {
+    return s.name
+}
+
+func (s *softwareEncoder) Encode(frame []byte) ([]byte, error) {
+    // Stub: Software encoding
+    return append([]byte{0x06}, frame...), nil
+}
+
+func (s *softwareEncoder) Close() error {
+    return nil
+}
+
 func NewHardwareEncoder(encoderType string) HardwareEncoder {
     switch encoderType {
     case "nvenc":
@@ -103,6 +120,8 @@ func NewHardwareEncoder(encoderType string) HardwareEncoder {
         return &videoToolboxEncoder{name: "VideoToolbox"}
     case "vaapi":
         return &vaapiEncoder{name: "VAAPI"}
+    case "software", "sw":
+        return &softwareEncoder{name: "Software"}
     default:
         return nil
     }

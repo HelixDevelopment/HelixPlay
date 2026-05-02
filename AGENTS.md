@@ -12,12 +12,12 @@
 
 For non-Claude agents (Codex, Cursor, Aider, Copilot, Cline, etc.) working in this repo. Claude Code reads `CLAUDE.md`.
 
-> **Source of truth:** `docs/research/chapters/MVP/05_Response/01_Constitution.md` **v2.1.0**
+> **Source of truth:** `docs/research/chapters/MVP/05_Response/01_Constitution.md` **v2.2.0**
 > **Authoritative MVP brief:** `docs/research/chapters/MVP/04_Request.md` — read before any planning question.
 > **Synthesis programme master plan:** `docs/research/chapters/MVP/05_Response/00_Master_Plan.md`
 > **System overview:** `docs/research/chapters/MVP/05_Response/02_System_Overview.md`
 >
-> **Constitution v2.1.0 amendments (2026-05-01):**
+> **Constitution v2.2.0 amendments (2026-05-02):**
 > 1. Anti-bluff tests MUST guarantee real, end-user-usable behaviour. Forbidden:
 >    `assert.True(t, true)`, `assert.NotNil(t, nil)`, constructor-only tests,
 >    mock-only integration/E2E tests, and permanently skipped tests without
@@ -30,6 +30,13 @@ For non-Claude agents (Codex, Cursor, Aider, Copilot, Cline, etc.) working in th
 > 4. `ValidateAntiBluff` unconditional; `CHALLENGE_ANTIBLUFF_STRICT` removed.
 >    All challenge implementations now call `RecordAction()`.
 > 5. Container verifier `execCommand()` executes real commands; no more no-op.
+> 6. **The 18 Contract Clauses (R-01..R-18)** codified in Constitution §17.
+> 7. **Eight Architectural Pillars** codified in Constitution §18.
+> 8. **Performance SLAs** codified in Constitution §19 — <=30ms LAN, <=50ms WAN at p999.
+> 9. **Technology Stack** codified in Constitution §20.
+> 10. **Implementation Roadmap** codified in Constitution §21 — 14 phases (P00–P13).
+> 11. **Observable behaviour assertion ratio** per §1.2 — at least 60% of assertions must verify observable behaviour.
+> 12. **Mutation score >= 85%** per §6.4.
 
 ---
 
@@ -45,7 +52,7 @@ The repo has two layers:
    - `cmd/core/` — Core backend stubs (discovery, protocol).
    - `cmd/host-agent/` — Sunshine-style host agent with capture (Windows DX11, Darwin ScreenCaptureKit, Linux PipeWire), encoding (hardware, dual-path), codec negotiation, input (USB, DualSense, hotplug), and transport (UDP, QUIC, WebRTC).
 
-2. **22 Git submodules** — independent Go modules vendored under the root. Most are `vasic-digital/*` reusable libraries; `HelixQA` is the autonomous QA framework under `HelixDevelopment`.
+2. **46 Git submodules** — independent Go modules vendored under the root. Most are `vasic-digital/*` reusable libraries; `HelixDevelopment` submodules include HelixQA, DocProcessor, LLMOrchestrator, LLMProvider, VisionEngine. Target architecture: 46 submodules.
 
 Key paths:
 - `docs/research/chapters/MVP/` — three research streams (base, latency, video) plus canonical synthesized docs under `05_Response/`.
@@ -108,7 +115,6 @@ Each submodule follows standard Go conventions:
 |------|--------------|---------|
 | `Auth` | vasic-digital | JWT, OAuth, API key, middleware auth |
 | `Cache` | vasic-digital | Caching abstractions |
-| `Catalogizer` | vasic-digital | Asset catalogization |
 | `Challenges` | vasic-digital | Full-stack challenge runner & bluff scanner |
 | `Concurrency` | vasic-digital | Non-blocking concurrency primitives |
 | `Containers` | vasic-digital | Container orchestration, health checks, lifecycle, service discovery |
@@ -245,7 +251,7 @@ Located in `scripts/`:
 
 - **`anti-bluff-scan.sh`** — CI lane. Scans code for forbidden patterns (TODO, FIXME, empty function bodies, `panic("not implemented")`, etc.), verifies `ValidateAntiBluff` is called in the Challenges runner, checks for Anti-Bluff Verification blocks in `05_Response/`, and verifies Constitution references in submodule configs. Non-overridable; exits 1 on failure.
 - **`claim-check.sh`** — Hook invoked by Claude Code on stop (5s timeout). Checks for uncommitted work or claims.
-- **`propagate-constitution.sh`** — Propagates Constitution v2.0.0 preamble to all submodules by rewriting their `CLAUDE.md`, `AGENTS.md`, and `CONSTITUTION.md` files.
+- **`propagate-constitution.sh`** — Propagates Constitution v2.2.0 preamble to all submodules by rewriting their `CLAUDE.md`, `AGENTS.md`, and `CONSTITUTION.md` files.
 - **`verify-submodules.py`** — Validates that `.gitmodules` contains all 22 required submodules with correct paths and URLs.
 
 ---
@@ -277,4 +283,4 @@ Synthesis methodology: `05_Response/00_Master_Plan.md` §4. Do not simplify spec
 
 ---
 
-End of `AGENTS.md`. Last updated 2026-05-01.
+End of `AGENTS.md`. Last updated 2026-05-02.

@@ -1,0 +1,115 @@
+version: "3.8"
+
+services:
+  # Core Backend
+  core:
+    build:
+      context: .
+      dockerfile: Containers/images/core/Dockerfile
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    environment:
+      - DATABASE_URL=postgresql://root@cockroachdb:26257/helixplay?sslmode=disable
+      - REDIS_URL=redis:6379
+      - NATS_URL=nats:4222
+    depends_on:
+      - cockroachdb
+      - redis
+      - nats
+    networks:
+      - helixplay
+
+  # Host Agent
+  host-agent:
+    build:
+      context: .
+      dockerfile: Containers/images/host-agent/Dockerfile
+    privileged: true
+    environment:
+      - CORE_ENDPOINT=core:50051
+      - DISCOVERY_MODE=rendezvous
+    devices:
+      - /dev/dri:/dev/dri
+    depends_on:
+      - core
+    networks:
+      - helixplay
+
+  # Discovery Beacon
+  discovery:
+    build:
+      context: .
+      dockerfile: Containers/images/discovery/Dockerfile
+    ports:
+      - "50052:50052"
+    environment:
+      - BIND_ADDR=0.0.0.0:50052
+    networks:
+      - helixplay
+
+  # CockroachDB
+  cockroachdb:
+    image: cockroachdb/cockroach:v24.2.4
+    command: start-single-node --insecure
+    ports:
+      - "26257:26257"
+      - "8081:8080"
+    volumes:
+      - cockroach-data:/cockroach/cockroach-data
+    networks:
+      - helixplay
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - helixplay
+
+  # NATS JetStream
+  nats:
+    image: nats:2.10-alpine
+    command: "-js -m 8222"
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - nats-data:/data/jetstream
+    networks:
+      - helixplay
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./Observability/config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - helixplay
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:11.0.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - helixplay
+
+volumes:
+  cockroach-data:
+  redis-data:
+  nats-data:
+  grafana-data:
+
+networks:
+  helixplay:
+    driver: bridge

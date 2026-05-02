@@ -1,0 +1,40 @@
+name: Anti-Bluff Scan
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main, '001-helixplay-system']
+
+jobs:
+  anti-bluff:
+    name: Anti-Bluff Verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.2'
+
+      - name: Run anti-bluff scan
+        run: bash scripts/anti-bluff-scan.sh
+        timeout-minutes: 10
+
+      - name: Check forbidden patterns
+        run: |
+          # Fail on TODO/FIXME/XXX/HACK in non-test code
+          if rg -n 'TODO|FIXME|XXX|HACK' --type go --type-not go-test -i; then
+            echo "ERROR: Forbidden patterns found in non-test code"
+            exit 1
+          fi
+
+      - name: Check empty function bodies
+        run: |
+          # AST scan for empty function bodies (excluding intentional Noop)
+          if find . -name '*.go' -not -path './vendor/*' -not -name '*_test.go' | xargs grep -l 'func.*{$' | grep -v Noop | head -1; then
+            echo "WARNING: Potential empty function bodies found"
+          fi

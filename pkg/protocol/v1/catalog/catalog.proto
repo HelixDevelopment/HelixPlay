@@ -1,0 +1,167 @@
+syntax = "proto3";
+package catalogizer.v1;
+
+option go_package = "github.com/HelixDevelopment/HelixPlay/pkg/protocol/v1;catalogizerv1";
+
+// CatalogService proxy to HelixDevelopment/Catalogizer
+service CatalogService {
+  rpc ListGames(ListGamesRequest) returns (ListGamesResponse);
+  rpc GetGame(GetGameRequest) returns (Game);
+  rpc SearchGames(SearchGamesRequest) returns (SearchGamesResponse);
+  rpc GetGameAssets(GetGameAssetsRequest) returns (GameAssets);
+  rpc GetTenantCatalog(GetTenantCatalogRequest) returns (TenantCatalog);
+  rpc UpdateTenantCatalogFilter(UpdateTenantCatalogFilterRequest) returns (TenantCatalog);
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+message ListGamesRequest {
+  string tenant_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+  GameFilter filter = 4;
+  string order_by = 5;
+}
+
+message GameFilter {
+  repeated string store = 1;
+  repeated string genre = 2;
+  bool hdr = 3;
+  bool dualsense = 4;
+  bool installed_only = 5;
+  string search_query = 6;
+}
+
+message ListGamesResponse {
+  repeated Game games = 1;
+  string next_page_token = 2;
+  int64 total_size = 3;
+}
+
+message GetGameRequest {
+  string tenant_id = 1;
+  string game_id = 2;
+  bool include_assets = 3;
+}
+
+message Game {
+  string game_id = 1;
+  string tenant_id = 2;
+  string store = 3;
+  string store_app_id = 4;
+  string title = 5;
+  string slug = 6;
+  string description = 7;
+  string developer = 8;
+  string publisher = 9;
+  string release_date = 10;
+  repeated string genres = 11;
+  repeated string tags = 12;
+  string cover_art_url = 13;
+  repeated string screenshot_urls = 14;
+  repeated string video_urls = 15;
+  SystemRequirements min_requirements = 16;
+  SystemRequirements rec_requirements = 17;
+  bool supports_hdr = 18;
+  bool supports_atmos = 19;
+  bool supports_dualsense = 20;
+  repeated string supported_controllers = 21;
+  bool is_installed = 22;
+  int64 playtime_seconds = 23;
+  string last_played_at = 24;
+  map<string, string> metadata = 25;
+}
+
+message SystemRequirements {
+  string gpu = 1;
+  int32 ram_gb = 2;
+  string os = 3;
+  string storage_gb = 4;
+}
+
+message SearchGamesRequest {
+  string tenant_id = 1;
+  string query = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+  repeated string facets = 5;
+}
+
+message SearchGamesResponse {
+  repeated Game results = 1;
+  map<string, Facet> facets = 2;
+  string next_page_token = 3;
+  int64 total_size = 4;
+  int32 latency_ms = 5;
+}
+
+message Facet {
+  repeated FacetValue values = 1;
+}
+
+message FacetValue {
+  string value = 1;
+  int64 count = 2;
+}
+
+message GetGameAssetsRequest {
+  string tenant_id = 1;
+  string game_id = 2;
+  repeated string asset_types = 3;
+  string max_resolution = 4;
+  string format = 5;
+}
+
+message GameAssets {
+  string game_id = 1;
+  repeated Asset assets = 2;
+  int32 cdn_ttl_seconds = 3;
+}
+
+message Asset {
+  string type = 1;
+  string url = 2;
+  int32 width = 3;
+  int32 height = 4;
+  int64 size_bytes = 5;
+  string format = 6;
+}
+
+message GetTenantCatalogRequest {
+  string tenant_id = 1;
+}
+
+message TenantCatalog {
+  string tenant_id = 1;
+  CatalogFilter filter = 2;
+  int64 total_games = 3;
+  string last_sync_at = 4;
+}
+
+message CatalogFilter {
+  repeated string allowed_stores = 1;
+  repeated string allowed_genres = 2;
+  repeated string excluded_tags = 3;
+  int32 rating_max = 4;
+  bool require_hdr = 5;
+  bool require_dualsense = 6;
+}
+
+message UpdateTenantCatalogFilterRequest {
+  string tenant_id = 1;
+  CatalogFilter filter = 2;
+}
+
+message HealthRequest {
+  string service = 1;
+}
+
+message HealthResponse {
+  string status = 1;
+  repeated HealthCheck checks = 2;
+}
+
+message HealthCheck {
+  string name = 1;
+  string status = 2;
+  string detail = 3;
+}

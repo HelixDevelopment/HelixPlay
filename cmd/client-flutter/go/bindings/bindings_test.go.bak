@@ -1,0 +1,45 @@
+package main
+
+import "C"
+import (
+	"testing"
+	"unsafe"
+)
+
+func TestHelixVersion(t *testing.T) {
+	v := HelixVersion()
+	if v == nil {
+		t.Fatal("Expected non-nil version string")
+	}
+	s := C.GoString(v)
+	if s == "" {
+		t.Error("Expected non-empty version")
+	}
+	HelixFreeString(v)
+}
+
+func TestDiscoveryStartStop(t *testing.T) {
+	handle := HelixDiscoveryStart(nil, nil, nil)
+	if handle < 0 {
+		t.Fatal("Expected valid discovery handle")
+	}
+	count := HelixDiscoveryHostCount(handle)
+	if count < 0 {
+		t.Error("Expected non-negative host count")
+	}
+	HelixDiscoveryStop(handle)
+}
+
+func TestStreamingConnectFail(t *testing.T) {
+	addr := C.CString("")
+	defer C.free(unsafe.Pointer(addr))
+	handle := HelixStreamingConnect(addr, addr, addr, addr, addr)
+	if handle >= 0 {
+		HelixStreamingDisconnect(handle)
+		t.Fatal("Expected connect to fail with empty address")
+	}
+}
+
+func TestInputUpdate(t *testing.T) {
+	HelixInputUpdate(0, 1, 0x1000, -1000, 0, 1000, 0)
+}
