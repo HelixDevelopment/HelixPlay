@@ -38,10 +38,19 @@ jobs:
       - name: Check empty function bodies
         run: |
           # Scan for actually empty single-line function bodies like func Foo() {}
-          # Excludes generated protobuf, gRPC, and Flutter binding files
-          FOUND=$(find . -name '*.go' -not -path './vendor/*' -not -name '*_test.go' \
-            -not -name '*.pb.go' -not -name '*_grpc.pb.go' -not -name 'bindings.go' | while read -r f; do
-            if grep -n 'func.*{}$' "$f" | grep -vE 'Noop|NoOp|Mock|Stub|func main\(\)' >/dev/null 2>&1; then
+          # Excludes generated protobuf, gRPC, Flutter binding files, test fixtures,
+          # and submodules (each submodule has its own anti-bluff CI).
+          SUBMODULE_DIRS="Auth,Auth-Context-React,Cache,Catalogizer,Catalogizer-API-Client-TS,Challenges,Collection-Manager-React,Concurrency,Config,Containers,Dashboard-Analytics-React,Database,Discovery,DocProcessor,Entities,EventBus,Filesystem,Formatters,HelixQA,LLMOrchestrator,LLMProvider,Lazy,Media,Media-Browser-React,Media-Player-React,Media-Types-TS,Memory,Messaging,Middleware,Observability,Plugins,RAG,RateLimiter,Recovery,ReplayBuffer,ScreenDiff,Security,Storage,Streaming,TrainingCollector,UI-Components-React,VectorDB,VisionEngine,VisualRegression,Watcher,WebSocket-Client-TS"
+          IFS=',' read -ra SKIP <<< "$SUBMODULE_DIRS"
+          FIND_OPTS=""
+          for dir in "${SKIP[@]}"; do
+            FIND_OPTS="$FIND_OPTS -not -path './$dir/*'"
+          done
+
+          FOUND=$(eval "find . -name '*.go' -not -path './vendor/*' -not -name '*_test.go' \
+            -not -name '*.pb.go' -not -name '*_grpc.pb.go' -not -name 'bindings.go' \
+            -not -name '*fixture*' -not -name '*stub*' $FIND_OPTS" | while read -r f; do
+            if grep -n 'func.*{}$' "$f" | grep -vE 'Noop|NoOp|Mock|func main\(\)' >/dev/null 2>&1; then
               echo "$f"
             fi
           done)
