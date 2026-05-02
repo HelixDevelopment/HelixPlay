@@ -24,7 +24,10 @@ jobs:
         run: bash scripts/anti-bluff-scan.sh
         timeout-minutes: 10
 
-      - name: Check forbidden patterns
+      - name: Install ripgrep
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+
+      - name: Check forbidden patterns in non-test code
         run: |
           # Fail on TODO/FIXME/XXX/HACK in non-test code
           if rg -n 'TODO|FIXME|XXX|HACK' --type go --type-not go-test -i; then
@@ -35,6 +38,29 @@ jobs:
       - name: Check empty function bodies
         run: |
           # AST scan for empty function bodies (excluding intentional Noop)
-          if find . -name '*.go' -not -path './vendor/*' -not -name '*_test.go' | xargs grep -l 'func.*{$' | grep -v Noop | head -1; then
-            echo "WARNING: Potential empty function bodies found"
+          FOUND=$(find . -name '*.go' -not -path './vendor/*' -not -name '*_test.go' | while read -r f; do
+            if grep -n 'func.*{$' "$f" | grep -v Noop | grep -v "func main()" >/dev/null 2>&1; then
+              echo "$f"
+            fi
+          done)
+          if [ -n "$FOUND" ]; then
+            echo "ERROR: Potential empty function bodies found:"
+            echo "$FOUND"
+            exit 1
+          fi
+
+      - name: Verify tests exercise real behavior
+        run: |
+          # Every test file must contain at least one non-trivial assertion
+          # (not just constructor nil checks or assert.True(t, true))
+          FAILED=0
+          for f in $(find . -name '*_test.go' -not -path './vendor/*'); do
+            # Check if file only has constructor tests (TestNew* with only nil checks)
+            if grep -q "func TestNew" "$f" && ! grep -qE "(assert\.NotEqual|assert\.Equal|assert\.True\(t,.*[^)]+\)|require\.)" "$f"; then
+              echo "ERROR: Constructor-only bluff test: $f"
+              FAILED=1
+            fi
+          done
+          if [ "$FAILED" -eq 1 ]; then
+            exit 1
           fi

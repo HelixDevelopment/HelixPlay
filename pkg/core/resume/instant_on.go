@@ -2,6 +2,7 @@ package resume
 
 import (
 	"context"
+	"net"
 	"sync"
 	"time"
 )
@@ -72,7 +73,12 @@ func (p *Preconnector) warm() {
 	p.mu.RUnlock()
 
 	for _, addr := range addrs {
-		_ = addr
-		// Stub: in production this would attempt a TCP or QUIC handshake
+		// Attempt a TCP connection warm-up with short timeout
+		conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
+		if err != nil {
+			// Address unreachable; skip warm-up for this endpoint
+			continue
+		}
+		conn.Close()
 	}
 }

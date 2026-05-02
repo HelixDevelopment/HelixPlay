@@ -15,9 +15,7 @@ func newPlatformCapturer() Capturer {
 }
 
 func (d *dx11Capturer) Start() error {
-	// Stub: Initialize DX11 capture
-	d.running = true
-	return nil
+	return fmt.Errorf("dx11 capture unavailable: requires Windows Desktop Duplication API bindings (not available in this build)")
 }
 
 func (d *dx11Capturer) Stop() {
@@ -29,5 +27,8 @@ func (d *dx11Capturer) IsRunning() bool {
 }
 
 func (d *dx11Capturer) GetFrame() ([]byte, error) {
-	return nil, fmt.Errorf("platform capturer not yet implemented: DX11 capture requires Windows Desktop Duplication API bindings")
+	if !d.running {
+		return nil, fmt.Errorf("capturer not running")
+	}
+	return nil, fmt.Errorf("dx11 capture requires Windows Desktop Duplication API bindings")
 }

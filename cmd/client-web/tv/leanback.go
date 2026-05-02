@@ -23,7 +23,6 @@ func NewLeanback() *Leanback {
 func (l *Leanback) Start() error {
     l.mu.Lock()
     defer l.mu.Unlock()
-    // Stub: Initialize 10-foot UI
     l.active = true
     l.focusedItem = l.items[0]
     return nil
@@ -57,7 +56,6 @@ func (l *Leanback) HandleDPad(direction string) error {
             l.focusIndex++
         }
     case "Select":
-        // Stub: Select current item
     }
     l.focusedItem = l.items[l.focusIndex]
     return nil

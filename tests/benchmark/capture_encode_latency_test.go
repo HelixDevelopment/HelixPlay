@@ -5,33 +5,25 @@ import (
 	"testing"
 	"time"
 
-	"github.com/HelixDevelopment/HelixPlay/cmd/host-agent/capture"
 	"github.com/HelixDevelopment/HelixPlay/cmd/host-agent/encoder"
 )
 
-func BenchmarkCaptureEncodeLatency(b *testing.B) {
-	// Initialize real capture backend
-	capturer := capture.NewCapturer("linux")
-	if capturer == nil {
-		b.Fatal("expected capturer to be created")
-	}
-	if err := capturer.Start(); err != nil {
-		b.Fatal(err)
-	}
-	defer capturer.Stop()
-
-	// Initialize real hardware encoder
-	enc := encoder.NewDualPath("nvenc")
+func BenchmarkSoftwareEncodeLatency(b *testing.B) {
+	// Initialize real software encoder (always available, performs real work)
+	enc := encoder.NewDualPath("software")
 	if enc == nil {
-		b.Fatal("expected encoder to be created")
+		b.Fatal("expected software encoder to be created")
 	}
 	if err := enc.Start(); err != nil {
 		b.Fatal(err)
 	}
 	defer enc.Stop()
 
-	// Synthetic frame for encoding when capture stub returns no frame
-	syntheticFrame := make([]byte, 1920*1080*4)
+	// Synthetic 1080p RGBA frame
+	frame := make([]byte, 1920*1080*4)
+	for i := range frame {
+		frame[i] = byte(i % 256)
+	}
 
 	latencies := make([]time.Duration, 0, b.N)
 
@@ -39,15 +31,11 @@ func BenchmarkCaptureEncodeLatency(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		start := time.Now()
 
-		// Capture step
-		frame, _ := capturer.GetFrame()
-		if frame == nil {
-			frame = syntheticFrame
+		// Encode step: real software encoding with delta-RLE
+		_, err := enc.EncodeFrame(frame)
+		if err != nil {
+			b.Fatalf("encode failed: %v", err)
 		}
-
-		// Encode step (observable: encoder returns output set during Start)
-		_ = enc.GetStreamOutput()
-		_ = frame // ensure frame is used to prevent compiler optimization issues
 
 		latencies = append(latencies, time.Since(start))
 	}

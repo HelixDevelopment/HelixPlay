@@ -76,6 +76,13 @@ while IFS= read -r -d '' f; do
             FAILED=1
         fi
     fi
+
+    # Check for "// Stub:" comments which indicate unimplemented features pretending to work
+    if grep -I -q '// Stub:' "$f" 2>/dev/null; then
+        echo "  ERROR: Stub comment found (feature pretends to work but doesn't): $f"
+        FAILED=1
+    fi
+
 done <<< "$CODE_FILES"
 
 # Step 2: Verify anti-bluff in Challenges is being used unconditionally

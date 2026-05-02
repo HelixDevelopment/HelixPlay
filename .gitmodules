@@ -136,3 +136,6 @@
 [submodule "VisualRegression"]
 	path = VisualRegression
 	url = git@github.com:vasic-digital/VisualRegression.git
+[submodule "UI-Components-React"]
+	path = UI-Components-React
+	url = git@github.com:vasic-digital/UI-Components-React.git

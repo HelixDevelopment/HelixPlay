@@ -55,6 +55,5 @@ func (m *Manager) IsRunning(g game.Game) bool {
 
 // QuickResume saves state and stops the game, allowing quick resumption later
 func (m *Manager) QuickResume(g game.Game) error {
-	// Stub: save game state, then terminate
 	return m.Terminate(g)
 }

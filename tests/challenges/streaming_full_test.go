@@ -23,7 +23,7 @@ func TestChallengeFullStreamingLifecycle(t *testing.T) {
 		t.Fatal("expected GPU model")
 	}
 
-	// Step 2: Initialize encoder
+	// Step 2: Initialize software encoder (always available, performs real work)
 	enc := encoder.NewDualPath("software")
 	if enc == nil {
 		t.Fatal("expected encoder to be created")
@@ -43,10 +43,20 @@ func TestChallengeFullStreamingLifecycle(t *testing.T) {
 	}
 	defer udp.Stop()
 
-	// Step 4: Verify streaming output
-	output := enc.GetStreamOutput()
-	if len(output) == 0 {
-		t.Fatal("expected non-empty stream output")
+	// Step 4: Verify real encoding and transport
+	frame := make([]byte, 1000)
+	for i := range frame {
+		frame[i] = byte(i % 256)
+	}
+	encoded, err := enc.EncodeFrame(frame)
+	if err != nil {
+		t.Fatalf("encode frame failed: %v", err)
+	}
+	if len(encoded) == 0 {
+		t.Fatal("expected non-empty encoded output")
+	}
+	if err := udp.SendPacket(encoded); err != nil {
+		t.Fatalf("send packet failed: %v", err)
 	}
 
 	// Step 5: Simulate 60-second stream (shortened for test)

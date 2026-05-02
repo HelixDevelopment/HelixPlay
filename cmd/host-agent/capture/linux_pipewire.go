@@ -2,7 +2,10 @@
 
 package capture
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 type pipeWireCapturer struct {
 	baseCapturer
@@ -15,7 +18,9 @@ func newPlatformCapturer() Capturer {
 }
 
 func (p *pipeWireCapturer) Start() error {
-	// Stub: Initialize PipeWire capture
+	if !isPipeWireAvailable() {
+		return fmt.Errorf("pipewire capture unavailable: pipewire socket not found (install pipewire and ensure /run/user/*/pipewire-0 exists)")
+	}
 	p.running = true
 	return nil
 }
@@ -29,5 +34,21 @@ func (p *pipeWireCapturer) IsRunning() bool {
 }
 
 func (p *pipeWireCapturer) GetFrame() ([]byte, error) {
-	return nil, fmt.Errorf("platform capturer not yet implemented: PipeWire capture requires CGo bindings to libpipewire-0.3")
+	if !p.running {
+		return nil, fmt.Errorf("capturer not running")
+	}
+	return nil, fmt.Errorf("pipewire capture requires CGo bindings to libpipewire-0.3 (not available in this build)")
+}
+
+func isPipeWireAvailable() bool {
+	pipewirePaths := []string{
+		"/run/user/1000/pipewire-0",
+		"/run/user/0/pipewire-0",
+	}
+	for _, path := range pipewirePaths {
+		if _, err := os.Stat(path); err == nil {
+			return true
+		}
+	}
+	return false
 }

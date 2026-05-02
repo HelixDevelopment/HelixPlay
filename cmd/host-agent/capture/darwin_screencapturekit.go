@@ -15,9 +15,7 @@ func newPlatformCapturer() Capturer {
 }
 
 func (s *screenCaptureKitCapturer) Start() error {
-	// Stub: Initialize ScreenCaptureKit
-	s.running = true
-	return nil
+	return fmt.Errorf("screencapturekit capture unavailable: requires macOS 12.3+ with CGo/objc bridge bindings (not available in this build)")
 }
 
 func (s *screenCaptureKitCapturer) Stop() {
@@ -29,5 +27,8 @@ func (s *screenCaptureKitCapturer) IsRunning() bool {
 }
 
 func (s *screenCaptureKitCapturer) GetFrame() ([]byte, error) {
-	return nil, fmt.Errorf("platform capturer not yet implemented: ScreenCaptureKit requires macOS 12.3+ API bindings (CGo/objc bridge)")
+	if !s.running {
+		return nil, fmt.Errorf("capturer not running")
+	}
+	return nil, fmt.Errorf("screencapturekit capture requires macOS 12.3+ API bindings (CGo/objc bridge)")
 }

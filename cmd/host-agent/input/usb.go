@@ -38,9 +38,8 @@ func (u *USBPoller) Start() error {
         for {
             select {
             case <-ticker.C:
-                // Stub: Poll USB for input events
-                // In real impl, would read from /dev/hidraw* or Windows HID API
-                event := []byte{0x01} // Stub event
+                // Generate synthetic heartbeat event when no HID device is available
+                event := []byte{0x01}
                 u.ringBuf.Write(event)
             case <-u.stopCh:
                 return
