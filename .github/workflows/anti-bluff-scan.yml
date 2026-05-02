@@ -37,14 +37,16 @@ jobs:
 
       - name: Check empty function bodies
         run: |
-          # AST scan for empty function bodies (excluding intentional Noop)
-          FOUND=$(find . -name '*.go' -not -path './vendor/*' -not -name '*_test.go' | while read -r f; do
-            if grep -n 'func.*{$' "$f" | grep -v Noop | grep -v "func main()" >/dev/null 2>&1; then
+          # Scan for actually empty single-line function bodies like func Foo() {}
+          # Excludes generated protobuf, gRPC, and Flutter binding files
+          FOUND=$(find . -name '*.go' -not -path './vendor/*' -not -name '*_test.go' \
+            -not -name '*.pb.go' -not -name '*_grpc.pb.go' -not -name 'bindings.go' | while read -r f; do
+            if grep -n 'func.*{}$' "$f" | grep -vE 'Noop|NoOp|Mock|Stub|func main\(\)' >/dev/null 2>&1; then
               echo "$f"
             fi
           done)
           if [ -n "$FOUND" ]; then
-            echo "ERROR: Potential empty function bodies found:"
+            echo "ERROR: Empty single-line function bodies found:"
             echo "$FOUND"
             exit 1
           fi

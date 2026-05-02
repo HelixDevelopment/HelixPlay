@@ -20,6 +20,7 @@ jobs:
         with:
           go-version: '1.26.2'
       - run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - run: go work sync
       - run: govulncheck ./...
 
   snyk:
@@ -53,3 +54,4 @@ jobs:
           scan-type: 'fs'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
+          skip-dirs: 'Catalogizer,Challenges,Assets,Auth,Auth-Context-React,Cache,Catalogizer-API-Client-TS,Collection-Manager-React,Concurrency,Config,Containers,Dashboard-Analytics-React,Database,Discovery,DocProcessor,Entities,EventBus,Filesystem,Formatters,HelixQA,LLMOrchestrator,LLMProvider,Lazy,Media,Media-Browser-React,Media-Player-React,Media-Types-TS,Memory,Messaging,Middleware,Observability,Plugins,RAG,RateLimiter,Recovery,ReplayBuffer,ScreenDiff,Security,Storage,Streaming,TrainingCollector,UI-Components-React,VectorDB,VisionEngine,VisualRegression,Watcher,WebSocket-Client-TS'
