@@ -25,17 +25,20 @@ jobs:
   snyk:
     name: Snyk Scan
     runs-on: ubuntu-latest
-    if: ${{ env.SNYK_TOKEN != '' }}
-    env:
-      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Run Snyk
+        if: ${{ env.SNYK_TOKEN != '' }}
         uses: snyk/actions/golang@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --severity-threshold=high
+      - name: Skip Snyk (no token)
+        if: ${{ env.SNYK_TOKEN == '' }}
+        run: echo "SNYK_TOKEN not configured; skipping Snyk scan"
 
   trivy:
     name: Trivy Container Scan
