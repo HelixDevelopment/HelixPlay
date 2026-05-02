@@ -63,11 +63,12 @@ jobs:
       - name: Verify tests exercise real behavior
         run: |
           # Every test file must contain at least one non-trivial assertion
-          # (not just constructor nil checks or assert.True(t, true))
+          # (not just constructor nil checks or assert.True(t, true)).
+          # Recognizes testify assert/require AND standard Go testing t.Fatal/t.Error.
           FAILED=0
           for f in $(find . -name '*_test.go' -not -path './vendor/*'); do
             # Check if file only has constructor tests (TestNew* with only nil checks)
-            if grep -q "func TestNew" "$f" && ! grep -qE "(assert\.NotEqual|assert\.Equal|assert\.True\(t,.*[^)]+\)|require\.)" "$f"; then
+            if grep -q "func TestNew" "$f" && ! grep -qE "(assert\.NotEqual|assert\.Equal|assert\.True\(t,.*[^)]+\)|require\.|t\.Fatal|t\.Error|t\.Fail)" "$f"; then
               echo "ERROR: Constructor-only bluff test: $f"
               FAILED=1
             fi
