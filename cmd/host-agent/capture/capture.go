@@ -38,7 +38,7 @@ func (u *unsupportedCapturer) Start() error {
 }
 
 func (u *unsupportedCapturer) Stop() {
-	// no-op: unsupported capturer has no resources to release
+	_ = u // no-op: unsupported capturer has no resources to release
 }
 func (u *unsupportedCapturer) IsRunning() bool { return false }
 func (u *unsupportedCapturer) GetFrame() ([]byte, error) {
