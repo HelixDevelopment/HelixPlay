@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"digital.vasic.security/pkg/security"
+	"github.com/stretchr/testify/require"
 )
 
 func TestContainerEscapeVectors(t *testing.T) {
@@ -35,10 +36,6 @@ func TestNoWritableRootFS(t *testing.T) {
 func TestProcSelfAccess(t *testing.T) {
 	// Verify we can read basic proc info (sanity check)
 	data, err := os.ReadFile("/proc/self/status")
-	if err != nil {
-		t.Skipf("Cannot read /proc/self/status: %v", err)
-	}
-	if len(data) == 0 {
-		t.Fatal("expected non-empty /proc/self/status")
-	}
+	require.NoError(t, err, "/proc/self/status must be readable on Linux")
+	require.NotEmpty(t, data, "expected non-empty /proc/self/status")
 }

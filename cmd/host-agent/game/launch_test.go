@@ -6,6 +6,8 @@ import (
 	"runtime"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestLauncherLaunch(t *testing.T) {
@@ -33,9 +35,7 @@ func TestLauncherLaunch(t *testing.T) {
 
 	// Launch manually to control args
 	cmd := exec.CommandContext(ctx, binary, args)
-	if err := cmd.Start(); err != nil {
-		t.Skipf("skipping: %v", err)
-	}
+	require.NoError(t, cmd.Start(), "sleep binary must be available for game launch tests")
 	defer cmd.Process.Kill()
 
 	proc := &LaunchedProcess{Cmd: cmd, PID: cmd.Process.Pid, Game: g}
@@ -85,18 +85,12 @@ func TestLaunchedProcessKill(t *testing.T) {
 	}
 
 	cmd := exec.Command(binary, args...)
-	if err := cmd.Start(); err != nil {
-		t.Skipf("skipping: %v", err)
-	}
+	require.NoError(t, cmd.Start(), "sleep binary must be available for game launch tests")
 
 	proc := &LaunchedProcess{Cmd: cmd, PID: cmd.Process.Pid}
-	if !proc.IsRunning() {
-		t.Fatal("expected process to be running")
-	}
+	require.True(t, proc.IsRunning(), "expected process to be running")
 
-	if err := proc.Kill(); err != nil {
-		t.Fatalf("Kill failed: %v", err)
-	}
+	require.NoError(t, proc.Kill(), "Kill must succeed")
 
 	_ = proc.Wait()
 	time.Sleep(50 * time.Millisecond)

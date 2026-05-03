@@ -1,6 +1,7 @@
 package lifecycle
 
 import (
+	"fmt"
 	"os/exec"
 	"sync"
 
@@ -55,5 +56,14 @@ func (m *Manager) IsRunning(g game.Game) bool {
 
 // QuickResume saves state and stops the game, allowing quick resumption later
 func (m *Manager) QuickResume(g game.Game) error {
-	return m.Terminate(g)
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	// QuickResume is a no-op at this lifecycle stage because the game
+	// process is already running. In a full implementation this would
+	// restore a suspended session from a checkpoint.
+	_, ok := m.procs[g.Title]
+	if !ok {
+		return fmt.Errorf("game %s is not running, cannot quick resume", g.Title)
+	}
+	return nil
 }

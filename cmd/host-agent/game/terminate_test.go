@@ -6,6 +6,8 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestTerminatorGraceful(t *testing.T) {
@@ -15,9 +17,7 @@ func TestTerminatorGraceful(t *testing.T) {
 	}
 
 	cmd := exec.Command(binary, "30")
-	if err := cmd.Start(); err != nil {
-		t.Skipf("skipping: %v", err)
-	}
+	require.NoError(t, cmd.Start(), "sleep binary must be available for game terminate tests")
 
 	proc := &LaunchedProcess{Cmd: cmd, PID: cmd.Process.Pid}
 	term := NewTerminator(2 * time.Second)
@@ -35,9 +35,7 @@ func TestTerminatorGraceful(t *testing.T) {
 func TestTerminatorForceKill(t *testing.T) {
 	// Start a process that ignores SIGTERM
 	cmd := exec.Command("sleep", "30")
-	if err := cmd.Start(); err != nil {
-		t.Skipf("skipping: %v", err)
-	}
+	require.NoError(t, cmd.Start(), "sleep binary must be available for game terminate tests")
 
 	proc := &LaunchedProcess{Cmd: cmd, PID: cmd.Process.Pid}
 	// Very short graceful timeout to force kill path
@@ -62,9 +60,7 @@ func TestTerminatorNilProcess(t *testing.T) {
 
 func TestSendSignal(t *testing.T) {
 	cmd := exec.Command("sleep", "10")
-	if err := cmd.Start(); err != nil {
-		t.Skipf("skipping: %v", err)
-	}
+	require.NoError(t, cmd.Start(), "sleep binary must be available for game terminate tests")
 	defer cmd.Process.Kill()
 
 	proc := &LaunchedProcess{Cmd: cmd, PID: cmd.Process.Pid}

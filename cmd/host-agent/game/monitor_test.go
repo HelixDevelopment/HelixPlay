@@ -5,6 +5,8 @@ import (
 	"runtime"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestMonitorStartStop(t *testing.T) {
@@ -25,9 +27,7 @@ func TestMonitorDetectsExit(t *testing.T) {
 	}
 
 	cmd := exec.Command(binary, args...)
-	if err := cmd.Start(); err != nil {
-		t.Skipf("skipping: %v", err)
-	}
+	require.NoError(t, cmd.Start(), "sleep binary must be available for game monitor tests")
 
 	proc := &LaunchedProcess{Cmd: cmd, PID: cmd.Process.Pid, Game: Game{Title: "ShortGame"}}
 	// Reap process in background so Signal(0) returns false promptly after exit
