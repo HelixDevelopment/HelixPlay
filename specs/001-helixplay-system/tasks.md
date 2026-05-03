@@ -512,10 +512,10 @@ Phase 2 (Foundational)
 
 ### 12.2 Challenges & HelixQA
 
-- [ ] T256 [US10] Implement Challenge scenario: "Host boots, game launches, streams 60s, terminates" in `Challenges/challenges/streaming_basic.go`
-- [ ] T257 [US10] Implement Challenge scenario: "Controller input verified via screenshot diff" in `Challenges/challenges/controller_challenge.go`
-- [ ] T258 [US10] Implement Challenge scenario: "Quick resume from idle within 5s" in `Challenges/challenges/quick_resume_challenge.go`
-- [ ] T259 [US10] Implement Challenge scenario: "Recording playback quality check" in `Challenges/challenges/recording_challenge.go`
+- [x] T256 [US10] Implement Challenge scenario: "Host boots, game launches, streams 60s, terminates" in `tests/challenges/host_boot_stream_terminate_test.go`
+- [x] T257 [US10] Implement Challenge scenario: "Controller input verified via screenshot diff" in `tests/challenges/controller_input_screenshot_test.go`
+- [x] T258 [US10] Implement Challenge scenario: "Quick resume from idle within 5s" in `tests/challenges/quick_resume_test.go`
+- [x] T259 [US10] Implement Challenge scenario: "Recording playback quality check" in `tests/challenges/recording_quality_test.go`
 - [ ] T260 [US10] Implement `ValidateAntiBluff()` call in all challenge scenarios in `Challenges/pkg/runner/validator.go`
 - [ ] T261 [US10] Implement `RecordAction()` in all challenge scenarios for evidence capture in `Challenges/pkg/runner/recorder.go`
 - [ ] T262 [US10] Integrate HelixQA autonomous orchestrator with all 10 test types in `HelixQA/pkg/helixqa/orchestrator.go`
@@ -524,16 +524,16 @@ Phase 2 (Foundational)
 
 ### 12.3 Anti-Bluff Enforcement
 
-- [ ] T265 [US10] Implement `anti-bluff-scan.sh` forbidden token detection (TODO, FIXME, empty bodies, panic("not implemented")) in `/scripts/anti-bluff-scan.sh`
+- [x] T265 [US10] Implement `anti-bluff-scan.sh` forbidden token detection (TODO, FIXME, empty bodies, panic("not implemented")) in `/scripts/anti-bluff-scan.sh`
 - [ ] T266 [US10] Implement AST-based empty function body scanner in `/scripts/ast_empty_body_scan.go`
 - [ ] T267 [US10] Implement observable assertion ratio checker (≥60% assertions must verify observable behavior) in `/scripts/assertion_ratio_check.go`
 - [ ] T268 [US10] Implement mutation testing gate (Gremlins ≥85% score required) in `.github/workflows/mutation-gate.yml`
 
 ### 12.4 US10 Integration
 
-- [ ] T269 [US10] Write Challenge test: full topology boot, stream, verify with `RecordAction()` in `tests/challenges/streaming_full_test.go`
-- [ ] T270 [US10] Write negative-leg test: break streaming encoder, verify E2E test fails in `tests/security/negative_leg_encoder_test.go`
-- [ ] T271 [US10] Write negative-leg test: break controller input, verify integration test fails in `tests/security/negative_leg_input_test.go`
+- [x] T269 [US10] Write Challenge test: full topology boot, stream, verify with `RecordAction()` in `tests/challenges/host_boot_stream_terminate_test.go`
+- [x] T270 [US10] Write negative-leg test: break streaming encoder, verify E2E test fails in `tests/challenges/negative_leg_encoder_test.go`
+- [x] T271 [US10] Write negative-leg test: break controller input, verify integration test fails in `tests/challenges/negative_leg_input_test.go`
 
 
 ---
