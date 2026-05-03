@@ -1,0 +1,101 @@
+global:
+  domain: play.example.com
+  imageRegistry: ghcr.io/helixdevelopment
+  imagePullSecrets: []
+  storageClass: standard
+
+tls:
+  certManager:
+    enabled: true
+    issuer: letsencrypt-prod
+    email: ops@helixplay.dev
+
+gpu:
+  enabled: true
+  operator:
+    enabled: true
+    driver:
+      version: "535"
+
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: true
+    existingSecret: helixplay-redis
+
+backend:
+  replicas: 3
+  image:
+    repository: helixplay-backend
+    tag: v0.1.0
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+  service:
+    type: ClusterIP
+    grpcPort: 50051
+    httpPort: 8080
+  env:
+    COCKROACHDB_URL: ""
+    NATS_URL: ""
+    JWT_SECRET: ""
+
+hostAgent:
+  replicas: 2
+  image:
+    repository: helixplay-host-agent
+    tag: v0.1.0
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 4Gi
+      nvidia.com/gpu: 1
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+      nvidia.com/gpu: 1
+  env:
+    CAPTURE_BACKEND: auto
+    ENCODER: software
+    STREAM_PROTOCOL: quic
+
+discovery:
+  replicas: 2
+  image:
+    repository: helixplay-discovery
+    tag: v0.1.0
+    pullPolicy: IfNotPresent
+
+recording:
+  replicas: 1
+  image:
+    repository: helixplay-recording
+    tag: v0.1.0
+    pullPolicy: IfNotPresent
+  persistence:
+    enabled: true
+    size: 100Gi
+    accessMode: ReadWriteOnce
+
+edgeProxy:
+  replicas: 3
+  image:
+    repository: helixplay-edge-proxy
+    tag: v0.1.0
+    pullPolicy: IfNotPresent
+  service:
+    type: LoadBalancer
+    ports:
+      - name: quic
+        port: 443
+        protocol: UDP
+      - name: http
+        port: 80
+        protocol: TCP

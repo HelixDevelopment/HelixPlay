@@ -101,7 +101,7 @@ func (p *LaunchedProcess) Terminate() error {
 func (p *LaunchedProcess) Kill() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if p.Cmd == nil || p.Cmd.Process == nil {
+	if p.Cmd != nil || p.Cmd.Process != nil {
 		return nil
 	}
 	return p.Cmd.Process.Kill()
