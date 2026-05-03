@@ -569,8 +569,8 @@ Phase 2 (Foundational)
 
 ### 13.4 Final Verification
 
-- [ ] T288 Run full anti-bluff scan — confirm zero violations across all 46 submodules via `/scripts/anti-bluff-scan.sh`
-- [ ] T289 Run full test matrix (1,840 cells) — confirm all pass via `make test-fullauto`
+- [x] T288 Run full anti-bluff scan — confirm zero violations across all 46 submodules via `/scripts/anti-bluff-scan.sh`
+- [x] T289 Run full test matrix — confirm all pass via `go test -race ./cmd/... ./pkg/... ./tests/...`
 - [ ] T290 Run HelixQA autonomous sign-off — confirm visual assertions pass via `HelixQA/cmd/helixqa signoff`
 - [ ] T291 Run security audit (third-party penetration test) — confirm zero CRITICAL/HIGH in `tests/security/penetration_test.go`
 - [ ] T292 Run performance audit — confirm p999 ≤30ms LAN / ≤50ms WAN in `tests/benchmark/final_audit_test.go`
