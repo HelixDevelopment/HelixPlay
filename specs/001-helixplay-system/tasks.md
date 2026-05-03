@@ -544,28 +544,28 @@ Phase 2 (Foundational)
 
 ### 13.1 Performance Optimization
 
-- [ ] T272 Implement io_uring zero-copy socket I/O for Linux host agent in `cmd/host-agent/network/iouring.go`
-- [ ] T273 Implement GPU-Direct texture sharing (NVENC zero-copy import) in `cmd/host-agent/encoder/gpu_direct.go`
-- [ ] T274 Implement frame pacing and VRR integration in `cmd/host-agent/streaming/frame_pacer.go`
-- [ ] T275 Implement PREEMPT_RT kernel parameter detection and recommendation in `cmd/host-agent/system/rt_check.go`
-- [ ] T276 Implement latency regression CI gate (>150% baseline blocks merge) in `.github/workflows/latency-regression.yml`
+- [x] T272 Implement io_uring zero-copy socket I/O for Linux host agent in `cmd/host-agent/network/iouring.go`
+- [x] T273 Implement GPU-Direct texture sharing (NVENC zero-copy import) in `cmd/host-agent/encoder/gpu_direct.go`
+- [x] T274 Implement frame pacing and VRR integration in `cmd/host-agent/streaming/frame_pacer.go`
+- [x] T275 Implement PREEMPT_RT kernel parameter detection and recommendation in `cmd/host-agent/system/rt_check.go`
+- [x] T276 Implement latency regression CI gate (>150% baseline blocks merge) in `.github/workflows/latency-regression.yml`
 
 ### 13.2 Audio & HDR Pipeline
 
-- [ ] T277 Implement Opus MultiStream encoder/decoder in `cmd/host-agent/audio/opus_multistream.go`
-- [ ] T278 Implement AC3/EAC3 passthrough in `cmd/host-agent/audio/ac3_passthrough.go`
-- [ ] T279 Implement Dolby Atmos forwarding (metadata extraction + re-encode) in `cmd/host-agent/audio/atmos.go`
-- [ ] T280 Implement HDR10/HDR10+ dynamic metadata pipeline in `cmd/host-agent/video/hdr_pipeline.go`
-- [ ] T281 Implement thermal-aware quality throttling in `cmd/host-agent/encoder/thermal_throttle.go`
+- [x] T277 Implement Opus MultiStream encoder/decoder in `cmd/host-agent/audio/opus_multistream.go`
+- [x] T278 Implement AC3/EAC3 passthrough in `cmd/host-agent/audio/ac3_passthrough.go`
+- [x] T279 Implement Dolby Atmos forwarding (metadata extraction + re-encode) in `cmd/host-agent/audio/atmos.go`
+- [x] T280 Implement HDR10/HDR10+ dynamic metadata pipeline in `cmd/host-agent/video/hdr_pipeline.go`
+- [x] T281 Implement thermal-aware quality throttling in `cmd/host-agent/encoder/thermal_throttle.go`
 
 ### 13.3 Documentation & Release
 
-- [ ] T282 Write API reference documentation (auto-generated from protobuf + OpenAPI) in `/docs/api/README.md`
-- [ ] T283 Write deployment guide (container setup, GPU passthrough, TLS certificates) in `/docs/deploy/README.md`
-- [ ] T284 Write operator manual (troubleshooting, performance tuning, monitoring) in `/docs/ops/README.md`
-- [ ] T285 Create Helm chart for Kubernetes deployment in `/deploy/helm/helixplay/`
-- [ ] T286 Tag all 46 submodules with v1.0.0 release via `scripts/release-tag.sh`
-- [ ] T287 Create GitHub Release with changelog and asset binaries in `.github/workflows/release.yml`
+- [x] T282 Write API reference documentation (auto-generated from protobuf + OpenAPI) in `/docs/api/README.md`
+- [x] T283 Write deployment guide (container setup, GPU passthrough, TLS certificates) in `/docs/deploy/README.md`
+- [x] T284 Write operator manual (troubleshooting, performance tuning, monitoring) in `/docs/ops/README.md`
+- [x] T285 Create Helm chart for Kubernetes deployment in `/deploy/helm/helixplay/`
+- [x] T286 Tag all 46 submodules with v1.0.0 release via `scripts/release-tag.sh`
+- [x] T287 Create GitHub Release with changelog and asset binaries in `.github/workflows/release.yml`
 
 ### 13.4 Final Verification
 
