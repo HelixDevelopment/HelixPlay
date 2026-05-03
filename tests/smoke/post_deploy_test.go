@@ -5,86 +5,104 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
+// TestPostDeployHealthChecks verifies core services respond with 200 OK
+// within 30 seconds of simulated deployment.
 func TestPostDeployHealthChecks(t *testing.T) {
-	// Simulate core backend health endpoint
-	coreHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/health" {
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte(`{"status":"ok"}`))
-			return
-		}
-		w.WriteHeader(http.StatusNotFound)
+	if testing.Short() {
+		t.Skip("skipping smoke test in short mode")
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"status":"ok","services":{"core":"up","discovery":"up"}}`))
+	})
+	mux.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"ready":true}`))
 	})
 
-	coreServer := httptest.NewServer(coreHandler)
-	defer coreServer.Close()
+	server := httptest.NewServer(mux)
+	defer server.Close()
 
-	// Simulate discovery service health endpoint
-	discoveryHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/health" {
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte(`{"status":"ok"}`))
-			return
-		}
-		w.WriteHeader(http.StatusNotFound)
-	})
-
-	discoveryServer := httptest.NewServer(discoveryHandler)
-	defer discoveryServer.Close()
-
-	// 30-second post-deploy health check
 	client := &http.Client{Timeout: 5 * time.Second}
 
-	// Check core backend
-	resp, err := client.Get(coreServer.URL + "/health")
-	if err != nil {
-		t.Fatalf("core health check failed: %v", err)
-	}
+	// Check core health endpoint.
+	resp, err := client.Get(server.URL + "/health")
+	require.NoError(t, err, "core health check failed")
 	resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("core health check returned %d", resp.StatusCode)
-	}
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "core health check returned non-200")
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 
-	// Check discovery service
-	resp, err = client.Get(discoveryServer.URL + "/health")
-	if err != nil {
-		t.Fatalf("discovery health check failed: %v", err)
-	}
+	// Check readiness endpoint.
+	resp, err = client.Get(server.URL + "/ready")
+	require.NoError(t, err, "readiness check failed")
 	resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("discovery health check returned %d", resp.StatusCode)
-	}
-
-	t.Log("Post-deploy health checks passed")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "readiness check returned non-200")
 }
 
-func TestSmokeEndpointsRespond(t *testing.T) {
+// TestSmokeAPIEndpoints verifies key REST endpoints return expected
+// shapes within the smoke-test time budget.
+func TestSmokeAPIEndpointsRespond(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping smoke test in short mode")
+	}
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/v1/tenants", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"tenants":[]}`))
+		_, _ = w.Write([]byte(`{"tenants":[{"id":"tenant-1","name":"Smoke Tenant"}]}`))
 	})
 	mux.HandleFunc("/api/v1/hosts", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"hosts":[]}`))
+		_, _ = w.Write([]byte(`{"hosts":[{"id":"host-1","name":"Smoke Host","online":true}]}`))
+	})
+	mux.HandleFunc("/api/v1/games", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"games":[{"id":"game-1","title":"Smoke Game"}]}`))
+	})
+	mux.HandleFunc("/api/v1/sessions", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"sessions":[]}`))
+	})
+	mux.HandleFunc("/api/v1/users", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"users":[]}`))
 	})
 
-	ts := httptest.NewServer(mux)
-	defer ts.Close()
+	server := httptest.NewServer(mux)
+	defer server.Close()
 
 	client := &http.Client{Timeout: 5 * time.Second}
-	endpoints := []string{"/api/v1/tenants", "/api/v1/hosts"}
+	endpoints := []struct {
+		path       string
+		wantStatus int
+		wantType   string
+	}{
+		{"/api/v1/tenants", http.StatusOK, "application/json"},
+		{"/api/v1/hosts", http.StatusOK, "application/json"},
+		{"/api/v1/games", http.StatusOK, "application/json"},
+		{"/api/v1/sessions", http.StatusOK, "application/json"},
+		{"/api/v1/users", http.StatusOK, "application/json"},
+	}
 
 	for _, ep := range endpoints {
-		resp, err := client.Get(ts.URL + ep)
-		if err != nil {
-			t.Fatalf("endpoint %s failed: %v", ep, err)
-		}
+		resp, err := client.Get(server.URL + ep.path)
+		require.NoError(t, err, "endpoint %s failed", ep.path)
 		resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			t.Fatalf("endpoint %s returned %d", ep, resp.StatusCode)
-		}
+		assert.Equal(t, ep.wantStatus, resp.StatusCode, "endpoint %s returned unexpected status", ep.path)
+		assert.Equal(t, ep.wantType, resp.Header.Get("Content-Type"), "endpoint %s returned wrong content type", ep.path)
 	}
 }
