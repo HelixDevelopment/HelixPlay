@@ -527,7 +527,7 @@ Phase 2 (Foundational)
 - [x] T265 [US10] Implement `anti-bluff-scan.sh` forbidden token detection (TODO, FIXME, empty bodies, panic("not implemented")) in `/scripts/anti-bluff-scan.sh`
 - [x] T266 [US10] Implement AST-based empty function body scanner in `/scripts/ast_empty_body_scan.go`
 - [x] T267 [US10] Implement observable assertion ratio checker (≥60% assertions must verify observable behavior) in `/scripts/assertion_ratio_check.go`
-- [ ] T268 [US10] Implement mutation testing gate (Gremlins ≥85% score required) in `.github/workflows/mutation-gate.yml`
+- [x] T268 [US10] Implement mutation testing gate (mutation score ≥85% required) in `.github/workflows/mutation-gate.yml`
 
 ### 12.4 US10 Integration
 
