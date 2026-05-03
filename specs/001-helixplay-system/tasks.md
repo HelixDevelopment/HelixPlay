@@ -506,9 +506,9 @@ Phase 2 (Foundational)
 - [x] T250 [US10] Create Security test suite (govulncheck + Snyk + Trivy orchestration) in `tests/security/`
 - [x] T251 [US10] Create Benchmark test suite with HDR histogram output in `tests/benchmark/`
 - [x] T252 [US10] Create Chaos test suite (Toxiproxy + chaos-mesh integration) in `tests/chaos/`
-- [ ] T253 [US10] Create Stress test runner (24-hour soak with memory leak detection) in `tests/stress/`
-- [ ] T254 [US10] Create Smoke test suite (30-second post-deploy health checks) in `tests/smoke/`
-- [ ] T255 [US10] Create Full Automation orchestrator (Dagger pipeline running all 9 types, fail-fast disabled) in `tests/fullauto/orchestrator.go`
+- [x] T253 [US10] Create Stress test runner (24-hour soak with memory leak detection) in `tests/stress/`
+- [x] T254 [US10] Create Smoke test suite (30-second post-deploy health checks) in `tests/smoke/`
+- [x] T255 [US10] Create Full Automation orchestrator (Dagger pipeline running all 9 types, fail-fast disabled) in `tests/fullauto/orchestrator.go`
 
 ### 12.2 Challenges & HelixQA
 
@@ -516,8 +516,8 @@ Phase 2 (Foundational)
 - [x] T257 [US10] Implement Challenge scenario: "Controller input verified via screenshot diff" in `tests/challenges/controller_input_screenshot_test.go`
 - [x] T258 [US10] Implement Challenge scenario: "Quick resume from idle within 5s" in `tests/challenges/quick_resume_test.go`
 - [x] T259 [US10] Implement Challenge scenario: "Recording playback quality check" in `tests/challenges/recording_quality_test.go`
-- [ ] T260 [US10] Implement `ValidateAntiBluff()` call in all challenge scenarios in `Challenges/pkg/runner/validator.go`
-- [ ] T261 [US10] Implement `RecordAction()` in all challenge scenarios for evidence capture in `Challenges/pkg/runner/recorder.go`
+- [x] T260 [US10] Implement `ValidateAntiBluff()` call in all challenge scenarios in `Challenges/pkg/runner/runner.go`
+- [x] T261 [US10] Implement `RecordAction()` in all challenge scenarios for evidence capture in `Challenges/pkg/challenge/antibluff.go`
 - [ ] T262 [US10] Integrate HelixQA autonomous orchestrator with all 10 test types in `HelixQA/pkg/helixqa/orchestrator.go`
 - [ ] T263 [US10] Implement HelixQA visual assertion (OpenCV frame comparison) in `HelixQA/pkg/helixqa/visual_assert.go`
 - [ ] T264 [US10] Implement HelixQA pre-release gate (all 1,840 cells must pass) in `HelixQA/pkg/helixqa/release_gate.go`
