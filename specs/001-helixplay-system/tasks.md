@@ -518,9 +518,9 @@ Phase 2 (Foundational)
 - [x] T259 [US10] Implement Challenge scenario: "Recording playback quality check" in `tests/challenges/recording_quality_test.go`
 - [x] T260 [US10] Implement `ValidateAntiBluff()` call in all challenge scenarios in `Challenges/pkg/runner/runner.go`
 - [x] T261 [US10] Implement `RecordAction()` in all challenge scenarios for evidence capture in `Challenges/pkg/challenge/antibluff.go`
-- [ ] T262 [US10] Integrate HelixQA autonomous orchestrator with all 10 test types in `HelixQA/pkg/helixqa/orchestrator.go`
-- [ ] T263 [US10] Implement HelixQA visual assertion (OpenCV frame comparison) in `HelixQA/pkg/helixqa/visual_assert.go`
-- [ ] T264 [US10] Implement HelixQA pre-release gate (all 1,840 cells must pass) in `HelixQA/pkg/helixqa/release_gate.go`
+- [x] T262 [US10] Integrate HelixQA autonomous orchestrator with all 10 test types in `HelixQA/pkg/helixqa/orchestrator.go`
+- [x] T263 [US10] Implement HelixQA visual assertion (OpenCV frame comparison) in `HelixQA/pkg/helixqa/visual_assert.go`
+- [x] T264 [US10] Implement HelixQA pre-release gate (all 1,840 cells must pass) in `HelixQA/pkg/helixqa/release_gate.go`
 
 ### 12.3 Anti-Bluff Enforcement
 
