@@ -188,6 +188,7 @@ func RunAntiBluffScan() error {
 	}
 
 	cmd := exec.Command("bash", scanScript)
+	cmd.Dir = rootDir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("anti-bluff scan failed: %w\n%s", err, string(out))

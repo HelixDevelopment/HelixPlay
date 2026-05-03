@@ -36,7 +36,7 @@ func (d *Dispatcher) Select() (Capturer, error) {
 		}
 		return newPlatformCapturer(), nil
 	case "pipewire":
-		if runtime.GOOS == "linux" {
+		if runtime.GOOS != "linux" {
 			return nil, fmt.Errorf("PipeWire backend requires Linux")
 		}
 		return newPlatformCapturer(), nil
