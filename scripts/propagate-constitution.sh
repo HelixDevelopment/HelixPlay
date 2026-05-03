@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # propagate-constitution.sh
-# Propagate Constitution v2.2.0 preamble and anti-bluff enforcement to all submodules
+# Propagate Constitution v2.3.0 preamble and anti-bluff enforcement to all submodules
 
 set -euo pipefail
 
@@ -12,7 +12,7 @@ CONSTITUTION_URL="https://github.com/HelixDevelopment/HelixPlay/blob/main/docs/r
 # Read submodules dynamically from .gitmodules
 SUBMODULES=($(git config --file .gitmodules --get-regexp path | awk '{print $2}'))
 
-echo "Propagating Constitution v2.2.0 to ${#SUBMODULES[@]} submodules..."
+echo "Propagating Constitution v2.3.0 to ${#SUBMODULES[@]} submodules..."
 echo "Constitution URL: $CONSTITUTION_URL"
 echo ""
 
@@ -39,7 +39,7 @@ for submodule in "${SUBMODULES[@]}"; do
 
 $PRIME_DIRECTIVE
 
-> **Constitution v2.2.0**: [Read the Constitution]($CONSTITUTION_URL)
+> **Constitution v2.3.0**: [Read the Constitution]($CONSTITUTION_URL)
 > All rules in Constitution §1-§21 are MANDATORY. No exception.
 >
 > **Amendments (2026-05-02):**
@@ -52,6 +52,12 @@ $PRIME_DIRECTIVE
 > - Automatic negative-leg fault injection per §1.3 / §6.3 / §11.5.7 —
 >   CI breaks each feature and verifies non-Unit tests fail.
 > - \`ValidateAntiBluff\` unconditional; all challenges call \`RecordAction()\`.
+> - Container verifier \`execCommand()\` executes real commands.
+> - \`go vet ./...\` MUST pass with zero warnings — no suppressions, no exceptions.
+> - Anti-bluff scan MUST fail the CI lane: \`scripts/anti-bluff-scan.sh\` exits
+>   non-zero on any violation. Process substitution (\`< <(...)>\`) required over
+>   pipes for variable state propagation; subshell-based patterns that silently
+>   drop failure state are forbidden.
 > - Observable behaviour assertion ratio: at least 60% of assertions must verify
 >   observable behaviour per §1.2.
 > - Mutation score >= 85% enforced by \`mutation_ratchet_challenge.sh\` per §6.4.
@@ -74,7 +80,7 @@ EOF
 
 $PRIME_DIRECTIVE
 
-> **Constitution v2.2.0**: [Read the Constitution]($CONSTITUTION_URL)
+> **Constitution v2.3.0**: [Read the Constitution]($CONSTITUTION_URL)
 > All rules in Constitution §1-§21 are MANDATORY. No exception.
 >
 > **Amendments (2026-05-02):**
@@ -85,6 +91,10 @@ $PRIME_DIRECTIVE
 > - Automatic negative-leg fault injection per §1.3 / §6.3 / §11.5.7.
 > - \`ValidateAntiBluff\` unconditional; all challenges call \`RecordAction()\`.
 > - Container verifier \`execCommand()\` executes real commands.
+> - \`go vet ./...\` MUST pass with zero warnings — no suppressions, no exceptions.
+> - Anti-bluff scan MUST fail the CI lane: \`scripts/anti-bluff-scan.sh\` exits
+>   non-zero on any violation. Process substitution (\`< <(...)>\`) required over
+>   pipes for variable state propagation.
 > - Observable behaviour assertion ratio: at least 60% of assertions must verify
 >   observable behaviour per §1.2.
 > - Mutation score >= 85% enforced by \`mutation_ratchet_challenge.sh\` per §6.4.
@@ -114,7 +124,7 @@ EOF
 
 > **Source of truth:** [$CONSTITUTION_URL]($CONSTITUTION_URL)
 >
-> This submodule adopts the HelixPlay Constitution v2.2.0 in full.
+> This submodule adopts the HelixPlay Constitution v2.3.0 in full.
 > All clauses §1-§21 are binding. No local weakening permitted.
 EOF
 
@@ -122,5 +132,5 @@ EOF
 done
 
 echo ""
-echo "Constitution v2.2.0 propagation complete."
+echo "Constitution v2.3.0 propagation complete."
 echo "Next: git add + commit in each submodule, then push."

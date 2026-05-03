@@ -1151,6 +1151,6 @@ Phase details, task breakdowns, and acceptance criteria live in `05_Response/09_
 Executed by: Claude (orchestrator session 1)
 Reviewed by: pending operator review
 Date: 2026-04-28
-Amended to v2.2.0: 2026-05-02
+Amended to v2.3.0: 2026-05-02
 
-End of Constitution v2.2.0 — 2026-05-02.
+End of Constitution v2.3.0 — 2026-05-02.
