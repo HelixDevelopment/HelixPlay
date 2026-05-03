@@ -1,0 +1,44 @@
+# Mutation Testing Gate
+# Constitution §6.4: mutation score >= 85% required.
+# Uses the custom mutation engine (scripts/mutation_engine.go) which applies
+# AST-based mutants and verifies the test suite catches them.
+name: Mutation Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  mutation:
+    name: Mutation Testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.2'
+
+      - name: Run mutation engine on core packages
+        run: |
+          echo "=== pkg/models ==="
+          go run scripts/mutation_engine.go -threshold=0.85 ./pkg/models/...
+          echo "=== cmd/core/internal/repository ==="
+          go run scripts/mutation_engine.go -threshold=0.85 ./cmd/core/internal/repository/...
+          echo "=== cmd/host-agent/capture ==="
+          go run scripts/mutation_engine.go -threshold=0.85 ./cmd/host-agent/capture/...
+          echo "=== cmd/host-agent/game ==="
+          go run scripts/mutation_engine.go -threshold=0.85 ./cmd/host-agent/game/...
+
+      - name: Run mutation engine on tests/
+        run: |
+          echo "=== tests/challenges ==="
+          go run scripts/mutation_engine.go -threshold=0.85 ./tests/challenges/...
+          echo "=== tests/security ==="
+          go run scripts/mutation_engine.go -threshold=0.85 ./tests/security/...
