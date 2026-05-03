@@ -5,6 +5,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -318,9 +319,225 @@ func paginate[T any](items []T, limit, offset int) []T {
 	return items[offset : offset+limit]
 }
 
+// MemoryGameRepository is an in-memory implementation of GameRepository.
+type MemoryGameRepository struct {
+	mu    sync.RWMutex
+	games map[string]*models.Game
+}
+
+// NewMemoryGameRepository creates a new in-memory game repository.
+func NewMemoryGameRepository() *MemoryGameRepository {
+	return &MemoryGameRepository{games: make(map[string]*models.Game)}
+}
+
+func (r *MemoryGameRepository) Create(_ context.Context, g *models.Game) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.games[g.ID] = g
+	return nil
+}
+
+func (r *MemoryGameRepository) GetByID(_ context.Context, id string) (*models.Game, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	g, ok := r.games[id]
+	if !ok {
+		return nil, fmt.Errorf("game %s not found", id)
+	}
+	return g, nil
+}
+
+func (r *MemoryGameRepository) GetByStoreID(_ context.Context, storeType models.GameStoreType, storeID string) (*models.Game, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	for _, g := range r.games {
+		if g.StoreType == storeType && g.StoreID == storeID {
+			return g, nil
+		}
+	}
+	return nil, fmt.Errorf("game with store type %s and id %s not found", storeType, storeID)
+}
+
+func (r *MemoryGameRepository) Update(_ context.Context, g *models.Game) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.games[g.ID] = g
+	return nil
+}
+
+func (r *MemoryGameRepository) Delete(_ context.Context, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.games, id)
+	return nil
+}
+
+func (r *MemoryGameRepository) ListByHost(_ context.Context, hostID string, limit, offset int) ([]*models.Game, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	// Host filtering not supported in memory stub; return all games
+	var out []*models.Game
+	for _, g := range r.games {
+		out = append(out, g)
+	}
+	return paginate(out, limit, offset), nil
+}
+
+func (r *MemoryGameRepository) ListByTenant(_ context.Context, tenantID string, limit, offset int) ([]*models.Game, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	// Tenant filtering not supported in memory stub; return all games
+	var out []*models.Game
+	for _, g := range r.games {
+		out = append(out, g)
+	}
+	return paginate(out, limit, offset), nil
+}
+
+func (r *MemoryGameRepository) Search(_ context.Context, tenantID, query string, limit, offset int) ([]*models.Game, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	var out []*models.Game
+	for _, g := range r.games {
+		if query == "" || containsIgnoreCase(g.Title, query) {
+			out = append(out, g)
+		}
+	}
+	return paginate(out, limit, offset), nil
+}
+
+func containsIgnoreCase(s, substr string) bool {
+	return len(s) >= len(substr) && len(substr) > 0 &&
+		strings.Contains(strings.ToLower(s), strings.ToLower(substr))
+}
+
+// MemoryUserRepository is an in-memory implementation of UserRepository.
+type MemoryUserRepository struct {
+	mu     sync.RWMutex
+	users  map[string]*models.User
+	emails map[string]string // tenantID:email -> userID
+	oauth  map[string]string // tenantID:provider:subject -> userID
+}
+
+// NewMemoryUserRepository creates a new in-memory user repository.
+func NewMemoryUserRepository() *MemoryUserRepository {
+	return &MemoryUserRepository{
+		users:  make(map[string]*models.User),
+		emails: make(map[string]string),
+		oauth:  make(map[string]string),
+	}
+}
+
+func (r *MemoryUserRepository) Create(_ context.Context, u *models.User) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.users[u.ID] = u
+	if u.Email != "" {
+		r.emails[u.TenantID+":"+u.Email] = u.ID
+	}
+	if u.OAuth2Provider != "" && u.OAuth2Subject != "" {
+		r.oauth[u.TenantID+":"+u.OAuth2Provider+":"+u.OAuth2Subject] = u.ID
+	}
+	return nil
+}
+
+func (r *MemoryUserRepository) GetByID(_ context.Context, id string) (*models.User, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	u, ok := r.users[id]
+	if !ok {
+		return nil, fmt.Errorf("user %s not found", id)
+	}
+	return u, nil
+}
+
+func (r *MemoryUserRepository) GetByEmail(_ context.Context, tenantID, email string) (*models.User, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	id, ok := r.emails[tenantID+":"+email]
+	if !ok {
+		return nil, fmt.Errorf("user with email %s not found in tenant %s", email, tenantID)
+	}
+	return r.users[id], nil
+}
+
+func (r *MemoryUserRepository) GetByOAuthSubject(_ context.Context, tenantID, provider, subject string) (*models.User, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	id, ok := r.oauth[tenantID+":"+provider+":"+subject]
+	if !ok {
+		return nil, fmt.Errorf("user with oauth provider %s and subject %s not found in tenant %s", provider, subject, tenantID)
+	}
+	return r.users[id], nil
+}
+
+func (r *MemoryUserRepository) Update(_ context.Context, u *models.User) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	old, ok := r.users[u.ID]
+	if !ok {
+		return fmt.Errorf("user %s not found", u.ID)
+	}
+	// Update email index
+	if old.Email != u.Email || old.TenantID != u.TenantID {
+		delete(r.emails, old.TenantID+":"+old.Email)
+		if u.Email != "" {
+			r.emails[u.TenantID+":"+u.Email] = u.ID
+		}
+	}
+	// Update oauth index
+	if old.OAuth2Provider != u.OAuth2Provider || old.OAuth2Subject != u.OAuth2Subject || old.TenantID != u.TenantID {
+		delete(r.oauth, old.TenantID+":"+old.OAuth2Provider+":"+old.OAuth2Subject)
+		if u.OAuth2Provider != "" && u.OAuth2Subject != "" {
+			r.oauth[u.TenantID+":"+u.OAuth2Provider+":"+u.OAuth2Subject] = u.ID
+		}
+	}
+	r.users[u.ID] = u
+	return nil
+}
+
+func (r *MemoryUserRepository) UpdateLastLogin(_ context.Context, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	u, ok := r.users[id]
+	if !ok {
+		return fmt.Errorf("user %s not found", id)
+	}
+	now := time.Now().UTC()
+	u.LastLoginAt = &now
+	return nil
+}
+
+func (r *MemoryUserRepository) Delete(_ context.Context, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	u, ok := r.users[id]
+	if !ok {
+		return nil
+	}
+	delete(r.users, id)
+	delete(r.emails, u.TenantID+":"+u.Email)
+	delete(r.oauth, u.TenantID+":"+u.OAuth2Provider+":"+u.OAuth2Subject)
+	return nil
+}
+
+func (r *MemoryUserRepository) ListByTenant(_ context.Context, tenantID string, limit, offset int) ([]*models.User, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	var out []*models.User
+	for _, u := range r.users {
+		if u.TenantID == tenantID {
+			out = append(out, u)
+		}
+	}
+	return paginate(out, limit, offset), nil
+}
+
 // Compile-time interface checks.
 var (
 	_ coreRepo.SessionRepository = (*MemorySessionRepository)(nil)
 	_ coreRepo.TenantRepository  = (*MemoryTenantRepository)(nil)
 	_ coreRepo.HostRepository    = (*MemoryHostRepository)(nil)
+	_ coreRepo.GameRepository    = (*MemoryGameRepository)(nil)
+	_ coreRepo.UserRepository    = (*MemoryUserRepository)(nil)
 )

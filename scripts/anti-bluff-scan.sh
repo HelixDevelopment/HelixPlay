@@ -166,13 +166,13 @@ for pattern in "${VACUOUS_PATTERNS[@]}"; do
         ! -path "*/Panoptic/*" ! -path "*/.opencode/*" \
         -exec grep -H -n -E "$pattern" {} + 2>/dev/null || true)
     if [ -n "$matches" ]; then
-        echo "$matches" | while read -r line; do
+        while IFS= read -r line; do
             # Exclude intentional scanner test fixtures
             if [[ "$line" != *"fixtures/bluff_g_"* ]] && [[ "$line" != *"anti-bluff/tests/fixtures"* ]]; then
                 echo "  ERROR: Vacuous assertion (bluff test): $line"
                 VACUOUS_FOUND=1
             fi
-        done
+        done <<< "$matches"
     fi
 done
 

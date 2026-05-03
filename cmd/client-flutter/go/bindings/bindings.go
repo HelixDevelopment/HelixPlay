@@ -20,6 +20,7 @@ import (
 var (
 	bindingsMu        sync.Mutex
 	discoveryClients  = make(map[int]*discovery.Client)
+	discoveryCancels  = make(map[int]context.CancelFunc)
 	streamControllers = make(map[int]*streaming.SessionController)
 	inputManager      = input.NewManager()
 	catalogClients    = make(map[int]*catalog.Client)
@@ -59,6 +60,7 @@ func HelixDiscoveryStart(rendezvousAddr, tenantID, region *C.char) int {
 
 	bindingsMu.Lock()
 	discoveryClients[handle] = dc
+	discoveryCancels[handle] = cancel
 	bindingsMu.Unlock()
 
 	go func() {
@@ -71,8 +73,13 @@ func HelixDiscoveryStart(rendezvousAddr, tenantID, region *C.char) int {
 func HelixDiscoveryStop(handle int) {
 	bindingsMu.Lock()
 	dc, ok := discoveryClients[handle]
+	cancel, hasCancel := discoveryCancels[handle]
 	delete(discoveryClients, handle)
+	delete(discoveryCancels, handle)
 	bindingsMu.Unlock()
+	if hasCancel {
+		cancel()
+	}
 	if ok {
 		dc.Stop()
 	}
